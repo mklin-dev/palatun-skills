@@ -1,0 +1,15 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "palatun-skills",
+  "description": "Skills partagés des projets PALATUN : vérification d'une branche, juridique d'un site, issues GitHub.",
+  "owner": {
+    "name": "mklin-dev"
+  },
+  "plugins": [
+    {
+      "name": "palatun",
+      "description": "verif-feature, juridique et issues, les mêmes skills que ceux de l'auteur.",
+      "source": "./plugins/palatun"
+    }
+  ]
+}
