@@ -35,7 +35,7 @@ Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mie
 ## Fermer, abandonner, regrouper
 
 - Au merge, par `Closes`. L'epic se ferme avec sa dernière sous-issue, sauf une epic née d'un
-  audit, qui attend son contre-audit (skill `merge`, point 6).
+  audit : elle se ferme quand les mêmes audits, rejoués, ne sortent plus aucun constat vérifié.
 - Abandon : `gh issue close <n> --reason "not planned" --comment "<une phrase>"`.
 - Trop d'issues : les critères des petites passent dans la partie qui les absorbe, puis elles se
   ferment `not planned` avec « Repris dans #M ».
