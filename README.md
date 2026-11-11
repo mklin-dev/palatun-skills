@@ -16,4 +16,4 @@ Un projet qui déclare le plugin dans son `.claude/settings.json` le propose à 
 /plugin install palatun@palatun-skills
 ```
 
-Le dépôt est privé : demander une invitation.
+Mettre à jour : `/plugin marketplace update palatun-skills`.
