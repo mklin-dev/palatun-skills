@@ -17,7 +17,7 @@ Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mie
 - Titre en clair. Corps : le besoin, ce qu'il faut, puis **« Fini quand »**, des critères qu'on
   vérifie (une commande, un écran, un test), pas une intention.
 - **Un seul label** : `bug` (ça casse), `enhancement` (feature, amélioration), `task` (un geste
-  humain sans code, fermé à la main), `epic`. Pas de jalon.
+  humain sans code, fermé à la main ou par l'automate qui l'a ouvert), `epic`. Pas de jalon.
 
 ## Epic
 
