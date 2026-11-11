@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 170" width="300" height="170" role="img" aria-label="juridique : Ce qu&#x27;un site doit afficher, selon ce qu&#x27;il fait.">
+<title>juridique : Ce qu&#x27;un site doit afficher, selon ce qu&#x27;il fait.</title>
+<style>
+text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;fill:#1F2328;font-size:14px}
+.m{fill:#59636E} .b{font-weight:600}
+.box{fill:#F6F8FA;stroke:#D1D9E0;stroke-width:1.5}
+.ln{stroke:#818B98;stroke-width:2;fill:none} .dash{stroke-dasharray:6 5} .hd{fill:#818B98}
+.on{fill:#FFFFFF} .onk{stroke:#FFFFFF} .mk{stroke:#59636E}
+.g{fill:#1A7F37} .gs{fill:#DAFBE1;stroke:#1A7F37;stroke-width:2} .gk{stroke:#1A7F37}
+.p{fill:#8250DF} .ps{fill:#FBEFFF;stroke:#8250DF;stroke-width:2} .pk{stroke:#8250DF}
+.u{fill:#0969DA} .us{fill:#DDF4FF;stroke:#0969DA;stroke-width:2} .uk{stroke:#0969DA}
+.y{fill:#9A6700} .ys{fill:#FFF8C5;stroke:#9A6700;stroke-width:2}
+.r{fill:#CF222E} .rs{fill:#FFEBE9;stroke:#CF222E;stroke-width:2}
+@media (prefers-color-scheme: dark){
+text{fill:#E6EDF3} .m{fill:#9198A1}
+.box{fill:#151B23;stroke:#3D444D} .ln{stroke:#656C76} .hd{fill:#656C76}
+.on{fill:#0D1117} .onk{stroke:#0D1117} .mk{stroke:#9198A1}
+.g{fill:#3FB950} .gs{fill:#12261E;stroke:#3FB950} .gk{stroke:#3FB950}
+.p{fill:#AB7DF8} .ps{fill:#211A33;stroke:#AB7DF8} .pk{stroke:#AB7DF8}
+.u{fill:#4493F8} .us{fill:#0D2341;stroke:#4493F8} .uk{stroke:#4493F8}
+.y{fill:#D29922} .ys{fill:#2B230C;stroke:#D29922}
+.r{fill:#F85149} .rs{fill:#2D1214;stroke:#F85149}
+}
+</style>
+<rect x="1" y="1" width="298" height="168" rx="12" class="box"/>
+<circle cx="38" cy="40" r="21" class="ps"/>
+<g transform="translate(26,28) scale(1)"><path d="M12 3v18M6 21h12M3 7h18" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="pk"/><path d="M5 7 2 14h6zM19 7l-3 7h6z" class="p"/><circle cx="12" cy="3.5" r="1.8" class="p"/></g>
+<text x="70" y="47" class="b" style="font-size:20px">juridique</text>
+<text x="22" y="94" style="font-size:15px">Ce qu&#x27;un site doit afficher,</text>
+<text x="22" y="116" style="font-size:15px">selon ce qu&#x27;il fait.</text>
+<text x="22" y="150" class="p b" style="font-size:14px">Ouvrir la page</text>
+</svg>

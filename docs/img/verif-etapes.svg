@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 146" width="960" height="146" role="img" aria-label="verif-feature : préparer, simplifier, prouver, relire, corriger, bilan">
+<title>verif-feature : préparer, simplifier, prouver, relire, corriger, bilan</title>
+<style>
+text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;fill:#1F2328;font-size:14px}
+.m{fill:#59636E} .b{font-weight:600}
+.box{fill:#F6F8FA;stroke:#D1D9E0;stroke-width:1.5}
+.ln{stroke:#818B98;stroke-width:2;fill:none} .dash{stroke-dasharray:6 5} .hd{fill:#818B98}
+.on{fill:#FFFFFF} .onk{stroke:#FFFFFF} .mk{stroke:#59636E}
+.g{fill:#1A7F37} .gs{fill:#DAFBE1;stroke:#1A7F37;stroke-width:2} .gk{stroke:#1A7F37}
+.p{fill:#8250DF} .ps{fill:#FBEFFF;stroke:#8250DF;stroke-width:2} .pk{stroke:#8250DF}
+.u{fill:#0969DA} .us{fill:#DDF4FF;stroke:#0969DA;stroke-width:2} .uk{stroke:#0969DA}
+.y{fill:#9A6700} .ys{fill:#FFF8C5;stroke:#9A6700;stroke-width:2}
+.r{fill:#CF222E} .rs{fill:#FFEBE9;stroke:#CF222E;stroke-width:2}
+@media (prefers-color-scheme: dark){
+text{fill:#E6EDF3} .m{fill:#9198A1}
+.box{fill:#151B23;stroke:#3D444D} .ln{stroke:#656C76} .hd{fill:#656C76}
+.on{fill:#0D1117} .onk{stroke:#0D1117} .mk{stroke:#9198A1}
+.g{fill:#3FB950} .gs{fill:#12261E;stroke:#3FB950} .gk{stroke:#3FB950}
+.p{fill:#AB7DF8} .ps{fill:#211A33;stroke:#AB7DF8} .pk{stroke:#AB7DF8}
+.u{fill:#4493F8} .us{fill:#0D2341;stroke:#4493F8} .uk{stroke:#4493F8}
+.y{fill:#D29922} .ys{fill:#2B230C;stroke:#D29922}
+.r{fill:#F85149} .rs{fill:#2D1214;stroke:#F85149}
+}
+</style>
+<rect x="1" y="10" width="138" height="126" rx="10" class="box"/>
+<circle cx="26" cy="40" r="14" class="g"/>
+<text x="26" y="45" class="on b" style="font-size:14px" text-anchor="middle">1</text>
+<text x="48" y="45" class="b" style="font-size:15px">Préparer</text>
+<text x="16" y="78" class="m" style="font-size:13px">spec et diff</text>
+<text x="16" y="98" class="m" style="font-size:13px">chemins à risque</text>
+<rect x="165" y="10" width="138" height="126" rx="10" class="box"/>
+<circle cx="190" cy="40" r="14" class="g"/>
+<text x="190" y="45" class="on b" style="font-size:14px" text-anchor="middle">2</text>
+<text x="212" y="45" class="b" style="font-size:15px">Simplifier</text>
+<text x="180" y="78" class="m" style="font-size:13px">retire le</text>
+<text x="180" y="98" class="m" style="font-size:13px">superflu</text>
+<path d="M143 73H154" class="ln"/><path d="M162 73l-9-5v10z" class="hd"/>
+<rect x="329" y="10" width="138" height="126" rx="10" class="box"/>
+<circle cx="354" cy="40" r="14" class="g"/>
+<text x="354" y="45" class="on b" style="font-size:14px" text-anchor="middle">3</text>
+<text x="376" y="45" class="b" style="font-size:15px">Prouver</text>
+<text x="344" y="78" class="m" style="font-size:13px">tests, CI et</text>
+<text x="344" y="98" class="m" style="font-size:13px">comportement</text>
+<rect x="344" y="108" width="80" height="20" rx="10" class="gs"/>
+<text x="384" y="122" class="g b" style="font-size:12px" text-anchor="middle">toujours</text>
+<path d="M307 73H318" class="ln"/><path d="M326 73l-9-5v10z" class="hd"/>
+<rect x="493" y="10" width="138" height="126" rx="10" class="box"/>
+<circle cx="518" cy="40" r="14" class="g"/>
+<text x="518" y="45" class="on b" style="font-size:14px" text-anchor="middle">4</text>
+<text x="540" y="45" class="b" style="font-size:15px">Relire</text>
+<text x="508" y="78" class="m" style="font-size:13px">relecteur neuf</text>
+<text x="508" y="98" class="m" style="font-size:13px">+ vérificateur</text>
+<path d="M471 73H482" class="ln"/><path d="M490 73l-9-5v10z" class="hd"/>
+<rect x="657" y="10" width="138" height="126" rx="10" class="box"/>
+<circle cx="682" cy="40" r="14" class="g"/>
+<text x="682" y="45" class="on b" style="font-size:14px" text-anchor="middle">5</text>
+<text x="704" y="45" class="b" style="font-size:15px">Corriger</text>
+<text x="672" y="78" class="m" style="font-size:13px">les constats</text>
+<text x="672" y="98" class="m" style="font-size:13px">confirmés</text>
+<path d="M635 73H646" class="ln"/><path d="M654 73l-9-5v10z" class="hd"/>
+<rect x="821" y="10" width="138" height="126" rx="10" class="gs"/>
+<circle cx="846" cy="40" r="14" class="g"/>
+<text x="846" y="45" class="on b" style="font-size:14px" text-anchor="middle">✓</text>
+<text x="868" y="45" class="b" style="font-size:15px">Bilan</text>
+<text x="836" y="78" class="m" style="font-size:13px">le verdict</text>
+<text x="836" y="98" class="m" style="font-size:13px">et ce qui reste</text>
+<path d="M799 73H810" class="ln"/><path d="M818 73l-9-5v10z" class="hd"/>
+</svg>

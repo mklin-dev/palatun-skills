@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 250" width="960" height="250" role="img" aria-label="Une issue, une PR ; une epic et ses sous-issues, deux niveaux au plus">
+<title>Une issue, une PR ; une epic et ses sous-issues, deux niveaux au plus</title>
+<style>
+text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;fill:#1F2328;font-size:14px}
+.m{fill:#59636E} .b{font-weight:600}
+.box{fill:#F6F8FA;stroke:#D1D9E0;stroke-width:1.5}
+.ln{stroke:#818B98;stroke-width:2;fill:none} .dash{stroke-dasharray:6 5} .hd{fill:#818B98}
+.on{fill:#FFFFFF} .onk{stroke:#FFFFFF} .mk{stroke:#59636E}
+.g{fill:#1A7F37} .gs{fill:#DAFBE1;stroke:#1A7F37;stroke-width:2} .gk{stroke:#1A7F37}
+.p{fill:#8250DF} .ps{fill:#FBEFFF;stroke:#8250DF;stroke-width:2} .pk{stroke:#8250DF}
+.u{fill:#0969DA} .us{fill:#DDF4FF;stroke:#0969DA;stroke-width:2} .uk{stroke:#0969DA}
+.y{fill:#9A6700} .ys{fill:#FFF8C5;stroke:#9A6700;stroke-width:2}
+.r{fill:#CF222E} .rs{fill:#FFEBE9;stroke:#CF222E;stroke-width:2}
+@media (prefers-color-scheme: dark){
+text{fill:#E6EDF3} .m{fill:#9198A1}
+.box{fill:#151B23;stroke:#3D444D} .ln{stroke:#656C76} .hd{fill:#656C76}
+.on{fill:#0D1117} .onk{stroke:#0D1117} .mk{stroke:#9198A1}
+.g{fill:#3FB950} .gs{fill:#12261E;stroke:#3FB950} .gk{stroke:#3FB950}
+.p{fill:#AB7DF8} .ps{fill:#211A33;stroke:#AB7DF8} .pk{stroke:#AB7DF8}
+.u{fill:#4493F8} .us{fill:#0D2341;stroke:#4493F8} .uk{stroke:#4493F8}
+.y{fill:#D29922} .ys{fill:#2B230C;stroke:#D29922}
+.r{fill:#F85149} .rs{fill:#2D1214;stroke:#F85149}
+}
+</style>
+<text x="0" y="22" class="b" style="font-size:16px">Une issue, une PR</text>
+<rect x="1" y="44" width="130" height="96" rx="10" class="us"/>
+<g transform="translate(15,58) scale(0.9)"><circle cx="12" cy="12" r="9.5" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="uk"/><circle cx="12" cy="12" r="2.6" class="u"/></g>
+<text x="45" y="75" class="b" style="font-size:16px">Issue</text>
+<text x="15" y="106" class="m" style="font-size:13px">Fini quand</text>
+<text x="15" y="125" class="m" style="font-size:13px">vérifiable</text>
+<rect x="156" y="44" width="130" height="96" rx="10" class="box"/>
+<g transform="translate(170,58) scale(0.9)"><g fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="mk"><circle cx="6" cy="5" r="2.5"/><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M6 7.5v9M18 16.5V10a3 3 0 0 0-3-3h-4.5M13 4.5 10.5 7l2.5 2.5"/></g></g>
+<text x="200" y="75" class="b" style="font-size:16px">PR</text>
+<text x="170" y="106" class="m" style="font-size:13px">Closes #N</text>
+<path d="M133 92H145" class="ln"/><path d="M153 92l-9-5v10z" class="hd"/>
+<rect x="311" y="44" width="130" height="96" rx="10" class="box"/>
+<g transform="translate(325,58) scale(0.9)"><g fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="mk"><circle cx="6" cy="5" r="2.5"/><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="13" r="2.5"/><path d="M6 7.5v9M6 7.5c0 3.5 4 5.5 9.5 5.5"/></g></g>
+<text x="355" y="75" class="b" style="font-size:16px">Merge</text>
+<text x="325" y="106" class="m" style="font-size:13px">l&#x27;issue se</text>
+<text x="325" y="125" class="m" style="font-size:13px">ferme seule</text>
+<path d="M288 92H300" class="ln"/><path d="M308 92l-9-5v10z" class="hd"/>
+<text x="500" y="22" class="b" style="font-size:16px">Une epic, ses parties</text>
+<rect x="600" y="40" width="260" height="58" rx="10" class="ps"/>
+<text x="616" y="65" class="b" style="font-size:15px">[EPIC] Paiement en ligne</text>
+<text x="616" y="86" class="m" style="font-size:13px">label epic, sans PR</text>
+<path d="M730 98V123M570 123H880" class="ln"/>
+<path d="M570 123V142" class="ln"/><path d="M570 150l-5-9h10z" class="hd"/>
+<rect x="500" y="150" width="140" height="58" rx="10" class="box"/>
+<g transform="translate(512,159) scale(0.75)"><circle cx="12" cy="12" r="9.5" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="uk"/><circle cx="12" cy="12" r="2.6" class="u"/></g>
+<text x="538" y="174" class="b" style="font-size:14px">Panier</text>
+<text x="512" y="198" class="m" style="font-size:13px">une PR</text>
+<path d="M725 123V142" class="ln"/><path d="M725 150l-5-9h10z" class="hd"/>
+<rect x="655" y="150" width="140" height="58" rx="10" class="box"/>
+<g transform="translate(667,159) scale(0.75)"><circle cx="12" cy="12" r="9.5" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="uk"/><circle cx="12" cy="12" r="2.6" class="u"/></g>
+<text x="693" y="174" class="b" style="font-size:14px">Paiement</text>
+<text x="667" y="198" class="m" style="font-size:13px">une PR</text>
+<path d="M880 123V142" class="ln"/><path d="M880 150l-5-9h10z" class="hd"/>
+<rect x="810" y="150" width="140" height="58" rx="10" class="box"/>
+<g transform="translate(822,159) scale(0.75)"><circle cx="12" cy="12" r="9.5" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="uk"/><circle cx="12" cy="12" r="2.6" class="u"/></g>
+<text x="848" y="174" class="b" style="font-size:14px">CGV et mail</text>
+<text x="822" y="198" class="m" style="font-size:13px">une PR</text>
+<text x="725" y="236" class="m" style="font-size:13px" text-anchor="middle">deux niveaux au plus</text>
+</svg>

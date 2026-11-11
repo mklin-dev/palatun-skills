@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 120" width="960" height="120" role="img" aria-label="palatun : les skills Claude Code partagés par les projets de l&#x27;équipe">
+<title>palatun : les skills Claude Code partagés par les projets de l&#x27;équipe</title>
+<style>
+text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;fill:#1F2328;font-size:14px}
+.m{fill:#59636E} .b{font-weight:600}
+.box{fill:#F6F8FA;stroke:#D1D9E0;stroke-width:1.5}
+.ln{stroke:#818B98;stroke-width:2;fill:none} .dash{stroke-dasharray:6 5} .hd{fill:#818B98}
+.on{fill:#FFFFFF} .onk{stroke:#FFFFFF} .mk{stroke:#59636E}
+.g{fill:#1A7F37} .gs{fill:#DAFBE1;stroke:#1A7F37;stroke-width:2} .gk{stroke:#1A7F37}
+.p{fill:#8250DF} .ps{fill:#FBEFFF;stroke:#8250DF;stroke-width:2} .pk{stroke:#8250DF}
+.u{fill:#0969DA} .us{fill:#DDF4FF;stroke:#0969DA;stroke-width:2} .uk{stroke:#0969DA}
+.y{fill:#9A6700} .ys{fill:#FFF8C5;stroke:#9A6700;stroke-width:2}
+.r{fill:#CF222E} .rs{fill:#FFEBE9;stroke:#CF222E;stroke-width:2}
+@media (prefers-color-scheme: dark){
+text{fill:#E6EDF3} .m{fill:#9198A1}
+.box{fill:#151B23;stroke:#3D444D} .ln{stroke:#656C76} .hd{fill:#656C76}
+.on{fill:#0D1117} .onk{stroke:#0D1117} .mk{stroke:#9198A1}
+.g{fill:#3FB950} .gs{fill:#12261E;stroke:#3FB950} .gk{stroke:#3FB950}
+.p{fill:#AB7DF8} .ps{fill:#211A33;stroke:#AB7DF8} .pk{stroke:#AB7DF8}
+.u{fill:#4493F8} .us{fill:#0D2341;stroke:#4493F8} .uk{stroke:#4493F8}
+.y{fill:#D29922} .ys{fill:#2B230C;stroke:#D29922}
+.r{fill:#F85149} .rs{fill:#2D1214;stroke:#F85149}
+}
+</style>
+<rect x="1" y="1" width="958" height="118" rx="16" class="box"/>
+<text x="40" y="58" class="b" style="font-size:40px">palatun</text>
+<text x="40" y="92" class="m" style="font-size:17px">Les skills Claude Code partagés par les projets de l&#x27;équipe</text>
+</svg>

@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 280" width="960" height="280" role="img" aria-label="La relecture : un relecteur neuf, puis un vérificateur classe chaque constat">
+<title>La relecture : un relecteur neuf, puis un vérificateur classe chaque constat</title>
+<style>
+text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;fill:#1F2328;font-size:14px}
+.m{fill:#59636E} .b{font-weight:600}
+.box{fill:#F6F8FA;stroke:#D1D9E0;stroke-width:1.5}
+.ln{stroke:#818B98;stroke-width:2;fill:none} .dash{stroke-dasharray:6 5} .hd{fill:#818B98}
+.on{fill:#FFFFFF} .onk{stroke:#FFFFFF} .mk{stroke:#59636E}
+.g{fill:#1A7F37} .gs{fill:#DAFBE1;stroke:#1A7F37;stroke-width:2} .gk{stroke:#1A7F37}
+.p{fill:#8250DF} .ps{fill:#FBEFFF;stroke:#8250DF;stroke-width:2} .pk{stroke:#8250DF}
+.u{fill:#0969DA} .us{fill:#DDF4FF;stroke:#0969DA;stroke-width:2} .uk{stroke:#0969DA}
+.y{fill:#9A6700} .ys{fill:#FFF8C5;stroke:#9A6700;stroke-width:2}
+.r{fill:#CF222E} .rs{fill:#FFEBE9;stroke:#CF222E;stroke-width:2}
+@media (prefers-color-scheme: dark){
+text{fill:#E6EDF3} .m{fill:#9198A1}
+.box{fill:#151B23;stroke:#3D444D} .ln{stroke:#656C76} .hd{fill:#656C76}
+.on{fill:#0D1117} .onk{stroke:#0D1117} .mk{stroke:#9198A1}
+.g{fill:#3FB950} .gs{fill:#12261E;stroke:#3FB950} .gk{stroke:#3FB950}
+.p{fill:#AB7DF8} .ps{fill:#211A33;stroke:#AB7DF8} .pk{stroke:#AB7DF8}
+.u{fill:#4493F8} .us{fill:#0D2341;stroke:#4493F8} .uk{stroke:#4493F8}
+.y{fill:#D29922} .ys{fill:#2B230C;stroke:#D29922}
+.r{fill:#F85149} .rs{fill:#2D1214;stroke:#F85149}
+}
+</style>
+<rect x="1" y="50" width="258" height="180" rx="10" class="box"/>
+<g transform="translate(20,68) scale(0.9)"><g fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="mk"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></g></g>
+<text x="50" y="86" class="b" style="font-size:16px">Relecteur neuf</text>
+<text x="20" y="112" class="m" style="font-size:13px">casse le diff, sur 3 axes</text>
+<rect x="20" y="126" width="140" height="24" rx="12" class="us"/>
+<text x="34" y="143" class="u b" style="font-size:13px">Règles</text>
+<rect x="20" y="158" width="140" height="24" rx="12" class="us"/>
+<text x="34" y="175" class="u b" style="font-size:13px">Spec et bugs</text>
+<rect x="20" y="190" width="140" height="24" rx="12" class="us"/>
+<text x="34" y="207" class="u b" style="font-size:13px">Nettoyage</text>
+<path d="M262 140H310" class="ln"/><path d="M318 140l-9-5v10z" class="hd"/>
+<rect x="320" y="95" width="200" height="90" rx="10" class="box"/>
+<text x="340" y="128" class="b" style="font-size:16px">Vérificateur</text>
+<text x="340" y="152" class="m" style="font-size:13px">tente de réfuter</text>
+<text x="340" y="170" class="m" style="font-size:13px">chaque constat</text>
+<path d="M522 140C560 140 560 36 588 36" class="ln"/>
+<path d="M598 36l-9-5v10z" class="hd"/>
+<rect x="600" y="10" width="359" height="52" rx="10" class="gs"/>
+<text x="620" y="42" class="g b" style="font-size:15px">confirmé</text>
+<text x="735" y="42" style="font-size:14px">corrigé sur la branche</text>
+<path d="M522 140C560 140 560 104 588 104" class="ln"/>
+<path d="M598 104l-9-5v10z" class="hd"/>
+<rect x="600" y="78" width="359" height="52" rx="10" class="ys"/>
+<text x="620" y="110" class="y b" style="font-size:15px">plausible</text>
+<text x="735" y="110" style="font-size:14px">au bilan, tu choisis</text>
+<path d="M522 140C560 140 560 172 588 172" class="ln"/>
+<path d="M598 172l-9-5v10z" class="hd"/>
+<rect x="600" y="146" width="359" height="52" rx="10" class="box"/>
+<text x="620" y="178" class="m b" style="font-size:15px">préexistant</text>
+<text x="735" y="178" style="font-size:14px">au bilan, sans fix</text>
+<path d="M522 140C560 140 560 240 588 240" class="ln"/>
+<path d="M598 240l-9-5v10z" class="hd"/>
+<rect x="600" y="214" width="359" height="52" rx="10" class="rs"/>
+<text x="620" y="246" class="r b" style="font-size:15px">réfuté</text>
+<text x="735" y="246" style="font-size:14px">écarté</text>
+</svg>
