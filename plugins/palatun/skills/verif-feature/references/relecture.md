@@ -9,8 +9,6 @@ autre (un code conforme peut faire la mauvaise chose, et l'inverse).
 
 - Chaque écart cite la règle exacte (`fichier:ligne` de la règle) et vérifie qu'elle vaut pour ce
   chemin. Pourquoi : une règle hors de sa portée ou mal lue est le faux positif le plus courant.
-- Les odeurs de code (Fowler, *Refactoring* ch. 3), toujours en jugement (« possible X »), jamais
-  en violation ; une règle du projet qui les autorise l'emporte.
 
 ## Axe 2 — Spec et bugs
 
@@ -47,7 +45,9 @@ Ce que le diff laisse derrière lui, chaque point avec la retouche proposée et 
 - le coût introduit : travail refait à chaque rendu ou appel, N+1, donnée chargée en entier pour
   en lire une partie, import lourd côté client, dépendance ajoutée pour un besoin qu'elle seule ne
   couvre pas ;
-- la doc qui décrit encore l'ancien comportement (README, `docs/`, `AGENTS.md`).
+- la doc qui décrit encore l'ancien comportement (README, `docs/`, `AGENTS.md`) ;
+- une autre odeur de code (Fowler, *Refactoring* ch. 3), toujours en jugement (« possible X »),
+  jamais en violation ; une règle du projet qui l'autorise l'emporte.
 
 ## Ce qui ne se rapporte pas
 
