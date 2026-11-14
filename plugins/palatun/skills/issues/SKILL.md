@@ -15,7 +15,7 @@ Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mie
   sur la branche par défaut. Un lot (le même geste sur plusieurs unités) : son issue liste les
   unités, une PR ferme les siennes.
 - Titre en clair. Corps, dans cet ordre :
-  - le besoin et ce qu'il faut ;
+  - le besoin et ce qu'il faut, avec l'approche retenue et pourquoi si un choix l'a tranchée ;
   - **« Fini quand »** : des critères qu'on vérifie (une commande, un écran, un test), pas une
     intention ;
   - **les fichiers pressentis**, revérifiés dans le code au lancement ; une `task` n'en a pas ;
