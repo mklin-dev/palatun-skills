@@ -11,8 +11,10 @@ Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mie
 
 - **Une issue = une PR** : la PR porte `Closes #N`, l'issue se ferme au merge sur la branche par
   défaut. Créée sur ton accord ; un fix fait tout de suite n'en a pas besoin.
-- **Son corps** : le besoin, ce qu'il faut, puis **Fini quand** : ce qu'on vérifie (une commande, un
-  écran, un test), pas une intention.
+- **Son corps**, dans cet ordre : le besoin et ce qu'il faut ; **Fini quand** : ce qu'on vérifie
+  (une commande, un écran, un test), pas une intention ; les fichiers pressentis, revérifiés dans
+  le code au lancement (aucun pour une `task`) ; `## Todo` en dernier : les étapes, ou les unités
+  quand le même geste se répète ; une issue créée d'avance le reçoit au lancement.
 - **Un seul label** : `bug` (ça casse), `enhancement` (feature, amélioration), `task` (geste humain
   sans code, fermé à la main), `epic`. Pas de jalon.
 - **Une epic** : jamais de `Closes #<epic>` ; son corps : l'objectif, les décisions, puis
