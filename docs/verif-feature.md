@@ -21,7 +21,7 @@ prête.
 | 3. Prouver | les tests touchés, les commandes de la CI, le vrai comportement (navigateur, CLI, SQL) ; un bug : son test rouge, puis vert |
 | 4. Relire | dans la session, ou par un relecteur neuf puis un vérificateur |
 | 5. Corriger | les constats confirmés, sur la branche ; le reste va au bilan |
-| Bilan | dans le chat, trois points : le verdict et ce qui change, ce qui te reste, puis « À faire avant de merger : … » ; le détail dans `bilan.md` et la section « Vérif » de la PR |
+| Bilan | dans le chat : une phrase, puis ce qui est fait, ce qui reste (à toi, ensuite) et ce qu'il faut savoir ; le détail dans `bilan.md`, replié sous ce bilan dans la section « Vérif » de la PR |
 
 </details>
 

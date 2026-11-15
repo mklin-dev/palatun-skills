@@ -115,34 +115,46 @@ Pourquoi : un fix non relu est du code que personne n'a vérifié.
 
 ## Le bilan
 
-`bilan.md`, au dossier de travail, numéroté d'un bout à l'autre, fini par la ligne « À faire
-avant de merger » du chat ; une rubrique vide saute.
+Le chat reçoit le bilan court, sans raconter la méthode (relecteur, vérificateur, tests vus
+rouges), sauf une étape qui a échoué ; un agent pas encore revenu y est en ⏳. Des règles de
+l'utilisateur qui fixent leur propre forme de bilan priment :
 
-1. **Le verdict** (✅ prêt · ⚠️ prêt avec réserves · ❌ pas prêt) et ce qui change pour
+<!-- bilan -->
+1. **Une phrase d'abord** : l'état, et ce qui change pour l'utilisateur.
+2. **Fait** : une ligne par PR, issue ou livrable, depuis le dernier bilan (tout le chantier
+   quand l'utilisateur demande où on en est). Un échec y figure en ❌, l'erreur exacte dans un
+   bloc de code.
+3. **Reste** : 👤 ce que l'utilisateur décide ou fait, avec la réponse conseillée ; 👉 la
+   prochaine étape de l'agent ; ⏳ ce qui tourne encore. Un point qui bloque une PR la nomme.
+4. **À savoir** : ❗ un risque, une chose non prouvée, un choix fait à la place de l'utilisateur.
+5. **Une liste numérotée d'un bout à l'autre**, sans arbre ; un bloc vide saute. Une PR que rien
+   ne bloque (ni fix, ni décision, ni relecture en cours, ni CI rouge) : la dernière ligne le dit
+   et la nomme.
+6. **Le détail** (preuves, constats de relecture) vit dans la PR ou dans un fichier dont le bilan
+   donne le chemin, sinon il attend la demande ; le bilan n'en garde que ce qui demande une action
+   ou porte un risque, sans renvoyer à ses numéros.
+<!-- /bilan -->
+
+Le détail va dans `bilan.md`, au dossier de travail, sous les mêmes blocs :
+
+1. **La phrase** : ✅ prêt · ❗ prêt avec réserves · ❌ pas prêt, et ce qui change pour
    l'utilisateur.
-2. **Chaque exigence et sa preuve** : prouvée (la commande ou la capture) ou non prouvée (pourquoi).
-3. **Les constats retenus** : ❌ puis ⚠️, `fichier:ligne` et impact ; puis `PLAUSIBLE`, « à
-   trancher » (options et recommandation) et `Nit:`. Un constat confirmé qu'un test, un lint ou une
-   règle aurait évité : le garde-fou proposé, jamais écrit d'office.
-4. **Les écartés**, une ligne chacun : réfutés, préexistants, hors du lot, déclinés.
-5. **Simplifié, sauté** (et pourquoi), **arbitré** à la place de l'utilisateur (et le coût si
-   c'est faux).
-6. **Le rayon d'impact** : migration, interface publique, client déjà installé, geste irréversible.
-7. **À tester** (geste → attendu), et le chemin de la planche avant/après.
+2. **Fait** : chaque exigence prouvée et sa preuve (la commande ou la capture) ; ce qui a été
+   simplifié.
+3. **Reste** : les constats retenus, ❌ puis ❗, `fichier:ligne` et impact, puis `PLAUSIBLE`,
+   « à trancher » (options et recommandation) et `Nit:` ; un constat confirmé qu'un test, un lint ou une
+   règle aurait évité : le garde-fou proposé, jamais écrit d'office ; à tester (geste → attendu)
+   et le chemin de la planche avant/après.
+4. **À savoir** : chaque exigence non prouvée, et pourquoi ; le rayon d'impact (migration,
+   interface publique, client déjà installé, geste irréversible) ; ce qui a été sauté (et
+   pourquoi), ou arbitré à la place de l'utilisateur (et le coût si c'est faux) ; les écartés,
+   une ligne chacun (réfutés, préexistants, hors du lot, déclinés).
 
-Sur sa propre PR dont le modèle a une section « Vérif » : `bilan.md` dans cette section seule
-(`gh pr view <n> --json body`, puis `gh pr edit <n> --body-file`).
-
-**Le chat, trois points au plus**, sans raconter la méthode (relecteur, vérificateur, tests vus
-rouges), sauf une étape qui a échoué :
-1. le verdict en icône, et ce qui change pour l'utilisateur, en une phrase ;
-2. ce qui lui reste sans bloquer le merge (tester, regarder, un risque à connaître : non prouvé,
-   sauté, arbitré à sa place, `PLAUSIBLE`), chaque point en quelques mots ; rien : le point saute ;
-3. le chemin de `bilan.md`, puis « À faire avant de merger : … », chaque point avec sa raison
-   (« relecture en cours » tant qu'un agent n'est pas revenu), ou « Rien à faire avant de
-   merger » ; la forme des règles de l'utilisateur, s'il en a.
+Sur sa propre PR dont le modèle a une section « Vérif » : le bilan court, puis `bilan.md` replié
+dessous (`<details>`), dans cette section seule (`gh pr view <n> --json body`, puis
+`gh pr edit <n> --body-file`).
 
 Pourquoi : le lecteur décroche devant un bloc ; ce qui demande une action, une décision ou porte
-un risque reste sous ses yeux, par son numéro.
+un risque reste sous ses yeux.
 
 Le skill s'arrête là.
