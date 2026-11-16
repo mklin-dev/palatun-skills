@@ -10,7 +10,10 @@ Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mie
 <img src="img/issues.svg" alt="Une issue, une PR : la PR porte Closes #N, l'issue se ferme au merge. Une epic, sans PR, et ses sous-issues, une PR chacune, deux niveaux au plus" width="100%">
 
 - **Une issue = une PR** : la PR porte `Closes #N`, l'issue se ferme au merge sur la branche par
-  défaut. Créée sur ton accord ; un fix fait tout de suite n'en a pas besoin.
+  défaut ; ce qu'elle ne tient pas part dans une issue neuve. Un lot : une PR pour toutes ses
+  unités. Créée sur ton accord ; un fix fait tout de suite n'en a pas besoin.
+- **À jour** à chaque point d'étape d'un chantier pas fini : son corps dit les décisions prises et
+  la prochaine étape, pour qu'une session neuve reprenne sans le chat.
 - **Son corps**, dans cet ordre : le besoin et ce qu'il faut, avec l'approche retenue et pourquoi
   si un choix l'a tranchée ; **Fini quand** : ce qu'on vérifie (une commande, un écran, un test),
   pas une intention ; les fichiers pressentis, revérifiés dans le code au lancement (aucun pour une

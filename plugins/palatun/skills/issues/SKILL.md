@@ -10,10 +10,16 @@ Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mie
 ## Créer
 
 - **Sur accord de l'utilisateur** (le oui d'un plan suffit) ; la tenir à jour et la fermer : libre.
+- **À jour**, pour qu'une session neuve reprenne sans le chat : à chaque point d'étape d'un
+  chantier pas fini, son corps dit les décisions prises en route et la prochaine étape ; l'epic, sa
+  « Prochaine étape » au lancement de chaque sous-issue. Le corps, pas un commentaire :
+  `gh issue view` sans terminal n'en montre que le nombre, et chacun notifie qui suit le dépôt.
+  Sans issue (une retouche) : la description de sa PR.
 - Un fix fait tout de suite : pas d'issue, la PR suffit.
 - **Une issue = une PR.** La PR porte `Closes #N` dans sa description : l'issue se ferme au merge
-  sur la branche par défaut. Un lot (le même geste sur plusieurs unités) : son issue liste les
-  unités, une PR ferme les siennes.
+  sur la branche par défaut. Une PR qui ne tient pas tout le « Fini quand » : le reste part dans
+  une issue neuve avant le merge. Un lot (le même geste sur plusieurs unités) : son issue liste
+  les unités, sa PR les livre toutes.
 - Titre en clair. Corps, dans cet ordre :
   - le besoin et ce qu'il faut, avec l'approche retenue et pourquoi si un choix l'a tranchée ;
   - **« Fini quand »** : des critères qu'on vérifie (une commande, un écran, un test), pas une
