@@ -13,9 +13,11 @@ autre (un code conforme peut faire la mauvaise chose, et l'inverse).
 ## Axe 2 — Spec et bugs
 
 1. **Spec**, avec son dénominateur (« 7 exigences à juger ») : manquant · non demandé · fait mais
-   faux, chaque entrée avec la ligne de la spec et le `fichier:ligne`.
+   faux, chaque entrée avec la ligne de la spec et le `fichier:ligne`. « Rien à juger » n'est pas
+   un succès.
 2. **Les chemins**, fonction par fonction touchée : chaque branche, y compris l'implicite (le cas
-   d'un enum non traité, le `else` absent, la valeur nulle ou vide, l'erreur d'un appel), et la
+   d'un enum non traité, le `else` absent, la valeur nulle ou vide, l'erreur d'un appel, la borne
+   d'une boucle ou d'un index, deux appels concurrents), et la
    signature de chaque fonction appelée. Pourquoi : un bug vit dans le chemin que le diff n'a pas
    écrit.
 3. **Le code supprimé** : portait-il un contrat (une vérification, un droit, un cas limite) que le
@@ -29,7 +31,8 @@ autre (un code conforme peut faire la mauvaise chose, et l'inverse).
    qui masque une panne ; un log, un rapport d'erreur ou une URL qui emporte un secret ou une
    donnée personnelle.
 7. **Les tests** : si je casse cette ligne, un test échoue-t-il ? Un test qui passerait aussi avec
-   le code supprimé, ou qui ne teste que son mock, ne prouve rien.
+   le code supprimé, ou qui ne teste que son mock, ne prouve rien. Sans suite de tests : comment
+   `verif.out` l'a prouvé (typecheck, lint, navigateur).
 8. **Sécurité**, sur tout le diff : entrée non validée, rendu HTML d'une saisie, droit contourné,
    secret exposé.
 
@@ -60,7 +63,9 @@ Ce que le diff laisse derrière lui, chaque point avec la retouche proposée et 
 ## Format
 
 Un bloc par constat, bloquants d'abord, puis importants, puis `Nit:` (mineurs, 5 au plus) :
-- l'axe, `fichier:ligne`, la règle ou la ligne de la spec violée ;
+- l'axe, `fichier:ligne`, la règle ou la ligne de la spec violée (l'`id` d'une table de ticket) ;
+  hors spec, un défaut (crash, perte de donnée, faille) se rapporte quand même, son scénario lui
+  sert d'ancre : le silence de la spec n'est pas une permission ;
 - le scénario concret (geste ou entrée → effet faux), ou pour l'axe 3 la retouche et son gain ;
 - la sévérité, qui est l'effet d'une seule occurrence, pas sa rareté.
 
