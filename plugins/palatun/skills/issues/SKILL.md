@@ -1,6 +1,6 @@
 ---
 name: issues
-description: "Use when creating, splitting, grouping, updating or closing GitHub issues — « crée une issue », « découpe en tickets », « fais une epic », « il y a trop d'issues », a project of several PRs, sub-issues, labels, `Closes #N`. Not for Jira tickets."
+description: "Use when creating, splitting, grouping, updating or closing GitHub issues — « crée une issue », « découpe en tickets », « fais une epic », « il y a trop d'issues », a project of several PRs, sub-issues, labels, `Closes #N`; or a multi-PR chantier the team tracks outside GitHub without a ticket, kept in a local plan like an epic. Not for Jira tickets."
 ---
 
 # issues — les issues GitHub d'un projet
@@ -42,6 +42,18 @@ Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mie
 - **Deux niveaux au plus** : l'epic et ses parties. Une partie trop grosse se coupe en d'autres
   sous-issues de la même epic, jamais en sous-sous-issues : ni lots intermédiaires, ni
   micro-tickets numérotés (1.1, 1.2). Une partie = ce qu'une PR livre.
+
+## Sans ticket : le plan local
+
+- Un chantier de plusieurs PR que l'équipe suit hors de GitHub (Jira…) sans lui avoir ouvert de
+  ticket, ou sur demande : pas d'issue, un plan local, `docs/superpowers/plans/<chantier>.md`,
+  ignoré par git (`.gitignore` de l'équipe, sinon `.git/info/exclude`) ; sans date dans le nom : un
+  plan daté de plus d'une semaine passe pour un plan fini oublié.
+- Tenu comme une epic, sous le même accord : en tête « Fini quand » et « Prochaine étape » ; puis
+  une ligne par partie (ce qu'une PR livre) avec son état, vérifié sur sa PR, sa branche et sa PR ;
+  les décisions datées dessous. À jour comme une epic (§ Créer, puce « À jour »).
+- Fini : ses décisions durables passent dans la doc du projet, puis il part, avec son registre
+  `.superpowers/sdd/<chantier>/` s'il en a un, sur le mot `supprime` (git ne les suit pas).
 
 ## Fermer, abandonner, regrouper
 

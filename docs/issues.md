@@ -5,7 +5,8 @@
 Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mieux on les suit.
 
 > [!TIP]
-> Se lance sur « crée une issue », « découpe en tickets », « fais une epic ». Pas pour Jira.
+> Se lance sur « crée une issue », « découpe en tickets », « fais une epic », ou un chantier sans
+> ticket à suivre en local. Pas pour Jira.
 
 <img src="img/issues.svg" alt="Une issue, une PR : la PR porte Closes #N, l'issue se ferme au merge. Une epic, sans PR, et ses sous-issues, une PR chacune, deux niveaux au plus" width="100%">
 
@@ -23,6 +24,10 @@ Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mie
   sans code, fermé à la main), `epic`. Pas de jalon.
 - **Une epic** : jamais de `Closes #<epic>` ; son corps : l'objectif, les décisions, puis
   « Prochaine étape : … ».
+- **Sans ticket** : un chantier de plusieurs PR que l'équipe suit hors de GitHub sans lui avoir
+  ouvert de ticket, ou sur ta demande, se suit dans un plan local
+  (`docs/superpowers/plans/<chantier>.md`, sans date, ignoré par git), tenu comme une epic ; fini,
+  ses décisions passent dans la doc du projet, puis il part sur ton mot.
 
 ## Fermer, abandonner, regrouper
 
