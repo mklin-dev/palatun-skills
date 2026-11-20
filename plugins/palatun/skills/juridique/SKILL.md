@@ -34,5 +34,4 @@ Les cas se cumulent.
 | envoie une newsletter | une case non cochée avant le premier envoi, sauf à un client qui a déjà acheté ; un lien de désinscription dans chaque mail |
 | relance un panier abandonné | un lien d'arrêt dans chaque mail |
 
-Templates, quand le dépôt en a : `@shared/legal` (mentions d'une vitrine), `@modules/legal` (CGV,
-confidentialité d'un e-commerce).
+Templates : ceux du dépôt, quand il en a (son `AGENTS.md`).

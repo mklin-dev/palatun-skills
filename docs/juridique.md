@@ -32,5 +32,4 @@ Les cas se cumulent.
 
 Vérifié le 2026-11-04 (Legifrance, CNIL, Service Public).
 
-Templates, quand le dépôt en a : `@shared/legal` (mentions d'une vitrine), `@modules/legal` (CGV,
-confidentialité d'un e-commerce).
+Templates : ceux du dépôt, quand il en a (son `AGENTS.md`).
