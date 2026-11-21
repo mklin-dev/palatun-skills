@@ -22,12 +22,14 @@ Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mie
   issue créée d'avance le reçoit au lancement.
 - **Un seul label** : `bug` (ça casse), `enhancement` (feature, amélioration), `task` (geste humain
   sans code, fermé à la main), `epic`. Pas de jalon.
-- **Une epic** : jamais de `Closes #<epic>` ; son corps : l'objectif, les décisions, puis
-  « Prochaine étape : … ».
+- **Une epic** : à partir de 3 PR prévues au départ ; jamais de `Closes #<epic>` ; son corps :
+  l'objectif, le design, les décisions, puis « Prochaine étape : … » ; chaque partie se traite
+  comme une feature (sa sous-issue, sa Todo, son worktree, sa PR).
 - **Sans ticket** : un chantier de plusieurs PR que l'équipe suit hors de GitHub sans lui avoir
   ouvert de ticket, ou sur ta demande, se suit dans un plan local
-  (`docs/superpowers/plans/<chantier>.md`, sans date, ignoré par git), tenu comme une epic ; fini,
-  ses décisions passent dans la doc du projet, puis il part sur ton mot.
+  (`docs/superpowers/plans/<chantier>.md`, au checkout principal, sans date, ignoré par git),
+  tenu comme une epic ; fini, ses décisions passent dans la doc du projet, puis il part sur ton
+  mot.
 
 ## Fermer, abandonner, regrouper
 

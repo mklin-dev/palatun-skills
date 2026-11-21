@@ -36,8 +36,9 @@ Elle grandit avec le risque :
 | retouche, ou sans logique nouvelle (déplacé, renommé, doc, config) | dans la session | non |
 | feature, gros chantier, ou chemin à risque, quelle que soit la taille | relecteur neuf | oui |
 
-Chemin à risque : auth, RLS ou SQL, secrets, migration de données ; `AGENTS.md`, `CLAUDE.md`,
-`SKILL.md`, agents, settings, hooks ; workflows CI ; la ligne `À risque` du projet.
+Chemin à risque : auth, RLS ou SQL, secrets, migration de données ; les garde-fous de l'agent
+(settings, hooks, agents ; dans un `AGENTS.md`, `CLAUDE.md` ou `SKILL.md`, une règle qui autorise,
+interdit ou supprime) ; workflows CI ; la ligne `À risque` du projet.
 
 > [!NOTE]
 > « Vérifie », « code review » ou « audit » seul, ou la branche d'un autre : lecture seule. Tout le

@@ -13,10 +13,12 @@ Prouver au lieu d'affirmer, à la taille du travail :
 | Retouche (le diff se dit en une phrase), ou sans logique nouvelle (déplacé, renommé, doc, config) | dans la session ; sans logique nouvelle : signatures, props et imports neufs | ❌ |
 | Feature, gros chantier, ou **chemin à risque quelle que soit la taille** | par un relecteur neuf | ✅ |
 
-Un chemin à risque : auth, droits (RLS) ou SQL, secrets, migration de données ; tout fichier qui
-règle l'agent (`AGENTS.md`, `CLAUDE.md`, `SKILL.md`, définitions d'agents, settings, hooks, règles
-Codex, `.mcp.json`, manifeste de plugin) ; la CI ; plus la ligne `À risque` du projet.
-`risque.txt` (①) en relève les chemins connus, pas tous.
+Un chemin à risque : auth, droits (RLS) ou SQL, secrets, migration de données ; les garde-fous
+de l'agent (settings, hooks, règles Codex, définitions d'agents, `.mcp.json`, manifeste de
+plugin ; dans un `AGENTS.md`, `CLAUDE.md` ou `SKILL.md`, une règle qui autorise, interdit ou
+supprime : mot exact, permission, suppression) ; la CI ; plus la ligne `À risque` du projet.
+`risque.txt` (①) en relève les chemins connus, pas tous. Une autre règle ou un autre skill est
+relu dans la session.
 
 **Lecture seule** — la branche d'un autre, ou une demande seule de vérifier (« vérifie », « code
 review », « audit ») : le passage entier, mais rien ne s'écrit d'office. La base se merge sur une
@@ -32,7 +34,9 @@ de son auteur passerait sous le tien).
    et dans sa § Flow deux lignes optionnelles, `À risque` (chemins sensibles en plus) et
    `En plus` (une étape propre, une grille par exemple, et l'étape qui la lance).
 2. **Ce qui a commandé le diff** : design, spec, plan, ticket, ou le symptôme d'un bug ; une PR :
-   les issues qu'elle ferme (`gh pr view --json closingIssuesReferences`, puis `gh issue view`).
+   les issues qu'elle ferme (`gh pr view --json closingIssuesReferences`, puis `gh issue view`) ;
+   la spec rangée hors de l'issue : `docs/superpowers/specs/<chantier>.md` ; un plan : sa section
+   « Review Focus » et les `Ruling:` de son registre.
    Le copier en `spec.md` dans le dossier de travail ; inconnu : le demander en une ligne.
    Pourquoi : sans référence, « conforme » ne veut rien dire, et les agents ne lisent pas le chat.
 3. **`scripts/prepare.sh <dossier> [base] [-- chemins du lot]`**, le dossier hors du dépôt (le
@@ -92,7 +96,7 @@ cible), ne vérifie ses constats qu'en `max` et vise un nombre minimum de consta
 un second avis sur les bugs, en plus du relecteur.
 
 **Puis contre-vérifier** ses constats bloquants et importants, en un lot (pas les `Nit:` : une
-erreur y coûte peu ; aucun constat : pas de vérificateur) : un second sous-agent neuf au modèle
+erreur y coûte peu ; aucun constat : pas de vérificateur ; jamais la session à sa place) : un second sous-agent neuf au modèle
 `opus`, avec le chemin absolu de `references/contre-verification.md`, le dossier de travail et
 l'arbre que le relecteur a lu ; à son retour, `git status` : un fichier qu'il aurait laissé dans
 le dépôt passe dans le dossier de travail (`mv`) avant ⑤ : ③ relancée ne voit que le lot, et

@@ -5,8 +5,9 @@
 set -euo pipefail
 
 # Les chemins à risque génériques (SKILL.md, tableau des tailles) ; la ligne `À risque` de
-# l'AGENTS.md du projet s'y ajoute à la main. Une seule ligne : un test la lit.
-RISQUE='(^|/)(migrations?|policies|secrets?)/|(^|/)auth[./]|(^|/)skills/.*\.md$|(^|/)skills/[^/]+/hooks/|\.sql$|(^|/)\.env|(^|/)\.github/workflows/|(^|/)(AGENTS|CLAUDE|SKILL)\.md$|(^|/)\.?claude/|(^|/)\.?codex/|(^|/)agents/[^/]+\.md$|\.rules$|(^|/)\.githooks/|(^|/)settings[^/]*\.json$|(^|/)\.mcp\.json$|(^|/)\.claude-plugin/'
+# l'AGENTS.md du projet s'y ajoute à la main, et un garde-fou changé dans un AGENTS.md, CLAUDE.md
+# ou SKILL.md, que le motif ne voit pas. Une seule ligne : un test la lit.
+RISQUE='(^|/)(migrations?|policies|secrets?)/|(^|/)auth[./]|(^|/)skills/[^/]+/hooks/|\.sql$|(^|/)\.env|(^|/)\.github/workflows/|(^|/)\.?claude/|(^|/)\.?codex/|(^|/)agents/[^/]+\.md$|\.rules$|(^|/)\.githooks/|(^|/)settings[^/]*\.json$|(^|/)\.mcp\.json$|(^|/)\.claude-plugin/'
 
 die() { echo "❌ $*" >&2; exit 1; }
 

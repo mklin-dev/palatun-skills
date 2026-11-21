@@ -32,9 +32,13 @@ Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mie
 
 ## Epic
 
-- Un chantier de plusieurs PR : une issue `[EPIC] <sujet>`, label `epic`, **sans PR à elle**,
-  jamais de `Closes #<epic>`. Son corps : l'objectif, les décisions, puis
+- Un chantier d'au moins 3 PR prévues au départ (moins : une issue, puis une neuve pour le
+  reste ; une epic de thème : sur demande) : une issue `[EPIC] <sujet>`, label `epic`, **sans PR
+  à elle**, jamais de `Closes #<epic>`. Son corps : l'objectif, le design, les décisions, puis
   « Prochaine étape : … ».
+- Chaque partie se traite comme une feature : sa sous-issue et sa `## Todo`, son worktree, sa PR ;
+  la suivante part de la branche par défaut, après le merge de la précédente, sans nouvel accord
+  (celui de l'epic les couvre).
 - Chaque partie connue est une **sous-issue native**, une PR chacune ou un lot :
   `gh api -X POST repos/<o>/<r>/issues/<epic>/sub_issues -F sub_issue_id=<id>`, où `<id>` vient de
   `gh api repos/<o>/<r>/issues/<n> --jq .id` (pas le numéro). Une issue d'un autre dépôt du même
@@ -46,14 +50,17 @@ Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mie
 ## Sans ticket : le plan local
 
 - Un chantier de plusieurs PR que l'équipe suit hors de GitHub (Jira…) sans lui avoir ouvert de
-  ticket, ou sur demande : pas d'issue, un plan local, `docs/superpowers/plans/<chantier>.md`,
-  ignoré par git (`.gitignore` de l'équipe, sinon `.git/info/exclude`) ; sans date dans le nom : un
-  plan daté de plus d'une semaine passe pour un plan fini oublié.
-- Tenu comme une epic, sous le même accord : en tête « Fini quand » et « Prochaine étape » ; puis
-  une ligne par partie (ce qu'une PR livre) avec son état, vérifié sur sa PR, sa branche et sa PR ;
-  les décisions datées dessous. À jour comme une epic (§ Créer, puce « À jour »).
-- Fini : ses décisions durables passent dans la doc du projet, puis il part, avec son registre
-  `.superpowers/sdd/<chantier>/` s'il en a un, sur le mot `supprime` (git ne les suit pas).
+  ticket, ou sur demande : pas d'issue, un plan local, `docs/superpowers/plans/<chantier>.md`, au
+  checkout principal, écrit hors de tout worktree (il survit à ceux des parties, et une session
+  en worktree n'écrit pas au checkout principal), ignoré par git (`.gitignore` de l'équipe, sinon
+  `.git/info/exclude`) ; sans date dans le nom : un plan daté de plus d'une
+  semaine passe pour un plan fini oublié.
+- Tenu comme une epic, sous le même accord, design compris : en tête « Fini quand » et
+  « Prochaine étape » ; puis une ligne par partie (ce qu'une PR livre) avec son état, vérifié sur
+  sa PR, sa branche et sa PR ; les décisions datées dessous. À jour comme une epic (§ Créer, puce
+  « À jour »), au merge de chaque partie, de retour au checkout principal.
+- Fini : ses décisions durables passent dans la doc du projet, puis il part sur le mot
+  `supprime` (git ne le suit pas).
 
 ## Fermer, abandonner, regrouper
 
