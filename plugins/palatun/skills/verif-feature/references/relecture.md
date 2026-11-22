@@ -39,8 +39,9 @@ autre (un code conforme peut faire la mauvaise chose, et l'inverse).
 ## Axe 3 — Nettoyer
 
 Ce que le diff laisse derrière lui, chaque point avec la retouche proposée et son gain :
-- la duplication (la même logique à deux endroits, un helper existant recopié) et la complexité
-  inutile ;
+- la duplication (la même logique à deux endroits, un helper existant recopié : chaque fonction,
+  composant ou idiome ajouté se cherche par Grep dans tout le dépôt, pas le seul diff ; hors de
+  Grep : `grep -r --exclude='.env*' --exclude='*.pem'`) et la complexité inutile ;
 - les restes : `TODO`, `console.log`, bouchon, code commenté, fichier ou export mort ;
 - l'ancien chemin gardé après un remplacement (alias, shim, flag, double lecture) ;
 - l'abstraction spéculative : « si je supprime ce module, la complexité disparaît-elle ou

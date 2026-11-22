@@ -17,8 +17,9 @@ Un chemin à risque : auth, droits (RLS) ou SQL, secrets, migration de données 
 de l'agent (settings, hooks, règles Codex, définitions d'agents, `.mcp.json`, manifeste de
 plugin ; dans un `AGENTS.md`, `CLAUDE.md` ou `SKILL.md`, une règle qui autorise, interdit ou
 supprime : mot exact, permission, suppression) ; la CI ; plus la ligne `À risque` du projet.
-`risque.txt` (①) en relève les chemins connus, pas tous. Une autre règle ou un autre skill est
-relu dans la session.
+`risque.txt` (①) en relève les chemins connus, pas tous. Une autre règle, ou la prose d'un skill
+(`SKILL.md`, `references/`), est relue dans la session, quelle que soit la taille ; ses scripts
+suivent le tableau.
 
 **Lecture seule** — la branche d'un autre, ou une demande seule de vérifier (« vérifie », « code
 review », « audit ») : le passage entier, mais rien ne s'écrit d'office. La base se merge sur une
