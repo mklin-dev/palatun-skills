@@ -1,0 +1,12 @@
+#!/bin/sh
+# Push direct sur main refusé à tous : passer par une PR (setup.md § Hooks git). Un dépôt privé sur
+# un compte GitHub Free n'a pas de protection de branche ; `git push --no-verify` en sortie.
+# Le .githooks/pre-push du dépôt le lance par exec, l'entrée standard (les refs) comprise.
+while read -r _local_ref local_sha remote_ref _remote_sha; do
+  case "$local_sha" in *[!0]*) ;; *) continue ;; esac # que des zéros : une suppression
+  if [ "$remote_ref" = "refs/heads/main" ]; then
+    echo "⛔ Push direct sur main refusé : passer par une PR (bypass : git push --no-verify)."
+    exit 1
+  fi
+done
+exit 0

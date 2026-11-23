@@ -1,0 +1,42 @@
+# Publie le paquet npm @palatun/conventions-ts à chaque poussée qui change conventions-ts/, sans
+# jeton : trusted publishing, qui joint la provenance d'office. Ce dépôt est régénéré, ce fichier aussi.
+name: publish
+
+on:
+  push:
+    branches: [main]
+    paths: [conventions-ts/**]
+  workflow_dispatch:
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  npm:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      # Une version déjà publiée ne se republie pas : relance, ou synchro qui ne change que le plugin.
+      - working-directory: conventions-ts
+        run: |
+          v=$(node -p 'require("./package.json").version')
+          if [ -n "$(npm view "@palatun/conventions-ts@$v" version 2>/dev/null)" ]; then
+            echo "@palatun/conventions-ts@$v déjà publiée"
+          else
+            npm publish --access public
+          fi

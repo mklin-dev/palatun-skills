@@ -1,0 +1,96 @@
+# conventions-ts — sources
+
+Relevées du 2026-10-26 au 2026-11-14 par recherche (registre npm, sources des paquets, docs officielles). « § X »
+seul renvoie au `SKILL.md`. Une règle qui dépend d'une version (son marqueur : `SKILL.md`) ou
+tranche contre l'usage cite sa source ici ; la vérifier avant de rouvrir la règle.
+
+| Règle | Où dans le skill | Source |
+| --- | --- | --- |
+| Pin `~6.0.3` : `latest` = TS 7, refusé par le peer de typescript-eslint (`< 6.1.0`) | § Dépendances & sécurité | https://registry.npmjs.org/typescript · https://typescript-eslint.io/users/dependency-versions/ · https://devblogs.microsoft.com/typescript/announcing-typescript-7-1-beta/ |
+| `moduleResolution: node` déprécié en TS 6, supprimé en TS 7 ; `strict` par défaut | `setup.md` § TypeScript — config | https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/ · https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/ |
+| `enum` et `import type` tenus par `tsc` | `setup.md` § TypeScript — config | https://www.typescriptlang.org/tsconfig/#erasableSyntaxOnly |
+| Un disable d'`exhaustive-deps` coupe la compilation du composant | § ESLint | tarball `eslint-plugin-react-hooks@7.1.1` (`DEFAULT_ESLINT_SUPPRESSIONS`) · https://oxc.rs/docs/guide/usage/linter/rules/react/rule-suppression |
+| `useEffect(async…)` refusé par `tsc`, pas par `no-misused-promises` | `setup.md` § ESLint | https://typescript-eslint.io/rules/no-misused-promises/ · essai local TS 6.0.3, `@types/react` 19 |
+| `react-hooks` recommended déjà étalé par `eslint-config-next` et `eslint-config-expo` | `setup.md` § ESLint | tarball `eslint-config-next@16.4.3` `dist/index.js` · https://github.com/facebook/react/blob/main/packages/eslint-plugin-react-hooks/README.md |
+| `exhaustive-deps`, `incompatible-library`, `unsupported-syntax` en `warn` : DoD sans warning | § Definition of Done | tarball `eslint-plugin-react-hooks@7.1.1` |
+| `treeifyError`/`flattenError`, `.flatten()`/`.format()` dépréciées | § Zod (v4) | https://zod.dev/error-formatting · https://zod.dev/v4/changelog |
+| Temporal : pas Baseline (Safari), absent d'Hermes | § Dates | https://github.com/web-platform-dx/web-features/blob/main/features/temporal.yml.dist · https://github.com/facebook/hermes/blob/main/doc/Features.md |
+| `<Activity hidden>` : Effects nettoyés, DOM gardé (web) ; Next `cacheComponents` l'applique aux routes | `references/react-details.md` | https://react.dev/reference/react/Activity · https://nextjs.org/docs/app/api-reference/config/next-config-js/cacheComponents |
+| Mémo manuelle pour une dépendance d'effet ; mémo existante laissée | § Mémoïsation (React Compiler actif) | https://react.dev/learn/react-compiler/introduction |
+| `finally` non compilé, signalé par la règle `todo` (coupée) | `references/react-details.md` | https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/HIR/BuildHIR.ts |
+| `watch()` de RHF signalé par `incompatible-library` | `references/react-details.md` | tarball `eslint-plugin-react-hooks@7.1.1` |
+| `queryClient.query()` (5.102.0), anciennes méthodes dépréciées | `references/react-details.md` | https://github.com/TanStack/query/releases/tag/%40tanstack%2Fquery-core%405.102.0 |
+| `'static'` insensible à `invalidateQueries` ; `refetchInterval` indépendant de `staleTime` | `references/react-details.md` | https://tanstack.com/query/latest/docs/framework/react/guides/important-defaults |
+| Sans `signal`, `cancelQueries` annule quand même (réponse tardive ignorée) | `references/react-details.md` | `@tanstack/query-core@5.105.0` `src/retryer.ts:167-191` · https://tanstack.com/query/latest/docs/framework/react/guides/query-cancellation |
+| Server Actions en série côté client | `SKILL.md` § TanStack Query | https://nextjs.org/docs/app/guides/server-actions#sequential-dispatch-on-the-client |
+| jest-expo, reco d'Expo ; Vitest, choix du projet (Next documente les deux) | § Tests | https://docs.expo.dev/develop/unit-testing/ · https://nextjs.org/docs/app/guides/testing |
+| Routes seules dans `app/`, partagé à la racine de `src/` | `archi.md` § Squelette | https://docs.expo.dev/router/basics/core-concepts/ · https://github.com/expo/expo/tree/main/templates/expo-template-default/src |
+| Next.js sans structure imposée, découpage par feature permis | `archi.md` § Squelette | https://nextjs.org/docs/app/getting-started/project-structure |
+| Sens unique, features isolées par le lint, pas de barrel | `archi.md` § Règle d'import et verrou | https://github.com/alan2207/bulletproof-react/blob/master/docs/project-structure.md · https://tkdodo.eu/blog/please-stop-using-barrel-files |
+| Verrou sous ESLint 10 (`import-x`) | `archi.md` § Règle d'import et verrou | https://github.com/un-ts/eslint-plugin-import-x · https://eslint.org/docs/v9.x/use/core-concepts/glossary |
+| Kebab-case (usage majoritaire, pas une règle officielle) | § Nommage | https://expo.dev/blog/expo-app-folder-structure-best-practices · https://ui.shadcn.com/docs/components-json |
+| Accès aux données `server-only` dans la feature, action mince qui délègue | `web.md` § Données, § Actions | https://nextjs.org/docs/app/guides/data-security |
+| `proxy.ts` remplace `middleware.ts` | `web.md` § Fichiers propres au web | https://nextjs.org/docs/app/api-reference/file-conventions/proxy |
+| `use()` : promesse d'un Server Component ou mise en cache | `web.md` § Rendu | https://react.dev/reference/react/use |
+| `partialPrefetching` avec `cacheComponents` ; `unstable_cache` pour survivre au déploiement | `web.md` § Cache | https://nextjs.org/docs/app/api-reference/config/next-config-js/cacheComponents · https://nextjs.org/docs/app/api-reference/directives/use-cache · https://nextjs.org/docs/app/api-reference/functions/unstable_cache |
+| Refus attendu en valeur de retour, `<Suspense>` près de la donnée avant `loading.tsx` | `web.md` § Erreurs et chargement | https://nextjs.org/docs/app/getting-started/error-handling · https://nextjs.org/docs/app/guides/streaming |
+| `captureException` dans `error.tsx` et `global-error.tsx`, `onRequestError` côté serveur | `web.md` § Erreurs et chargement | https://docs.sentry.io/platforms/javascript/guides/nextjs/capturing-errors · https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation |
+| `enabled` et une garde plutôt que `skipToken` : `refetch()` ne relance pas une query sautée par `skipToken` | `mobile.md` § Données | `@tanstack/query-core@5.104.5` `build/modern/utils.js:302` · https://tanstack.com/query/latest/docs/framework/react/guides/disabling-queries |
+| `queryOptions` comme abstraction, hook optionnel | `mobile.md` § Données | https://tkdodo.eu/blog/creating-query-abstractions · https://tanstack.com/query/latest/docs/framework/react/guides/query-options |
+| Une factory de clés par feature, colocalisée | `mobile.md` § Données | https://tkdodo.eu/blog/effective-react-query-keys |
+| Suffixes de plateforme hors de `src/app` | `mobile.md` § Routes et navigation | https://docs.expo.dev/router/advanced/platform-specific-modules/ |
+| `onlineManager`, `focusManager` sur React Native | `mobile.md` § Réseau et hors ligne | https://tanstack.com/query/latest/docs/framework/react/react-native |
+| Monorepo seulement avec une 2ᵉ app | `archi.md` § Interdits | https://docs.expo.dev/guides/monorepos/ · https://turborepo.dev/docs/crafting-your-repository/structuring-a-repository |
+| Doc du projet sans arborescence ni `AGENTS.md` par feature | `setup.md` § La doc du projet | https://arxiv.org/html/2602.11988 · https://code.claude.com/docs/en/best-practices · https://matklad.github.io/2021/02/06/ARCHITECTURE.md.html · https://agents.md/ |
+| `router.refresh()` relit les Server Components sans perdre l'état client | `web.md` § Données | https://nextjs.org/docs/app/api-reference/functions/use-router |
+| `generateStaticParams` : routes dynamiques rendues au build | `web.md` § Cache | https://nextjs.org/docs/app/api-reference/functions/generate-static-params |
+| Profils `cacheLife` (`minutes`, `hours`, `days`…) | `archi.md` § Fraîcheur | https://nextjs.org/docs/app/api-reference/functions/cacheLife |
+| `AGENTS.md` de 200 lignes au plus, seulement ce que le code ne dit pas ; procédures en skills ; `disable-model-invocation` pour un effet de bord | `setup.md` § La doc du projet | https://code.claude.com/docs/en/best-practices · https://code.claude.com/docs/en/memory · https://code.claude.com/docs/en/skills |
+| `AGENTS.md` ignoré par Claude si un `CLAUDE.md` existe ; `/doctor prompt-audit` | `setup.md` § La doc du projet | https://code.claude.com/docs/en/memory |
+| Codex : 32 KiB cumulés sur la chaîne d'`AGENTS.md`, coupés sans avertissement | `setup.md` § La doc du projet | https://github.com/openai/codex/issues/36371 · https://developers.openai.com/codex/guides/agents-md |
+| tRPC plutôt qu'oRPC : 26 M contre 8,5 M de téléchargements en octobre 2026 (vérifié le 2026-11-13) | `api.md` § La stack | https://api.npmjs.org/downloads/point/2026-10-01:2026-10-31/@trpc/server · https://api.npmjs.org/downloads/point/2026-10-01:2026-10-31/@orpc/server |
+| Forme Expo + tRPC + Better Auth + Drizzle (API hébergée dans Next), figée depuis 2025-12 | `api.md` § Squelette | https://github.com/t3-oss/create-t3-turbo · `gh api repos/t3-oss/create-t3-turbo/commits/main` |
+| Contexte qui ne lève pas, procédures empilées par middleware | `api.md` § Procédures | https://trpc.io/docs/server/authorization |
+| Pas de `createCaller` dans une procédure ; `createCaller` pour tester | `api.md` § Procédures, § Tests | https://trpc.io/docs/server/server-side-calls |
+| Codes d'erreur, message d'une `TRPCError` montré tel quel, `errorFormatter` | `api.md` § Erreurs | https://trpc.io/docs/server/error-handling |
+| `trpcMiddleware` capture tout `!ok` et joint l'input selon `dataCollection.httpBodies` ; l'`onError` du handler tRPC | `api.md` § Erreurs | tarball `@sentry/core@11.12.0` `build/esm/trpc.js` · https://trpc.io/docs/server/error-handling · tarball `@hono/trpc-server@0.4.2` `dist/index.js` (`...rest` transmis) |
+| Lecture d'un objet d'une autre org par son ID : API1:2023 | `api.md` § Accès aux données | https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/ |
+| `queryOptions`, `pathFilter`, `skipToken` dans l'exemple tRPC | `api.md` § Côté app | https://trpc.io/docs/client/tanstack-react-query/usage |
+| Better Auth sur Hono : `/api/auth/*`, CORS explicite, `trustedOrigins` | `api.md` § Auth | https://better-auth.com/docs/integrations/hono |
+| Vieilles apps installées : changements additifs (rien d'officiel côté tRPC) | `api.md` § Versions installées de l'app | https://dev.to/hirodeath/sharing-trpc-v11-types-between-nextjs-and-expo-a-real-world-indie-web-ios-setup-3067 |
+| `allowTypeImports` pour un import de type seulement | `api.md` § Verrous | https://typescript-eslint.io/rules/no-restricted-imports/ |
+| Better Auth 1.7.16 : 12 failles ; `@trpc/*` en peers exacts ; paquets montés ensemble | `api.md` § La stack | https://better-auth.com/blog/security-release-2026-11-03 · `npm view @trpc/client@11.28.0 peerDependencies` |
+| `@better-auth/cli` déprécié ; le CLI `auth` suit la ligne de better-auth | `api.md` § Auth | `npm view @better-auth/cli deprecated` · `npm view auth dist-tags` · https://better-auth.com/docs/concepts/cli |
+| Rate limit de Better Auth : prod, mémoire, `X-Forwarded-For` | `api.md` § Auth | https://better-auth.com/docs/concepts/rate-limit |
+| Plugins `expo`, `emailOTP`, `organization`, `bearer` | `api.md` § Auth | https://better-auth.com/docs/plugins/email-otp · https://better-auth.com/docs/plugins/organization · https://better-auth.com/docs/plugins/bearer |
+| `httpBatchStreamLink` : polyfills sur React Native ; `maxURLLength` et `maxItems` infinis par défaut | `api.md` § Côté app | https://trpc.io/docs/client/links/httpBatchStreamLink · https://trpc.io/docs/client/links/httpBatchLink |
+| RLS : superuser et `BYPASSRLS` la contournent toujours, le propriétaire sans `FORCE` | `api.md` § Accès aux données | https://www.postgresql.org/docs/current/ddl-rowsecurity.html · https://orm.drizzle.team/docs/rls |
+| Middlewares intégrés de Hono ; arrêt propre dans le callback de `server.close` | `api.md` § Serveur | https://hono.dev/docs/middleware/builtin/cors · https://hono.dev/docs/getting-started/nodejs |
+| PUT présigné sans borne de taille ; POST policy `content-length-range` | `api.md` § Fichiers | https://github.com/scaleway/docs-content/blob/main/pages/object-storage/api-cli/post-object.mdx |
+| Metro auto en monorepo ; pnpm isolé depuis SDK 54 | `api.md` § Squelette | https://docs.expo.dev/guides/monorepos/ |
+| Sentry 11 : `dataCollection` permissif par défaut, `--import`, `@sentry/hono` | `references/sentry.md` | https://github.com/getsentry/sentry-javascript/blob/develop/MIGRATION.md |
+| `createInsertSchema` exige une colonne `notNull` sans défaut | `api.md` § Squelette | tarball `drizzle-zod@0.8.3` `index.mjs` |
+| Erreur `pg` enveloppée par Drizzle (`cause`) ; tRPC fait un 500 de toute erreur hors `TRPCError` | `api.md` § Accès aux données | tarball `drizzle-orm@0.45.4` `errors.js` · https://github.com/trpc/trpc/blob/main/packages/server/src/unstable-core-do-not-import/error/TRPCError.ts |
+| Message d'un `BAD_REQUEST` Zod = JSON des issues ; `data.code` nom, `data.httpStatus` nombre | `api.md` § Erreurs | https://github.com/trpc/trpc/blob/main/packages/server/src/unstable-core-do-not-import/middleware.ts · tarball `zod@4.6.7` `v4/core/errors.js` |
+| `getCookie()` rejette sur web (lit SecureStore sans garde) ; le client Better Auth en `credentials: 'include'` | `api.md` § Côté app | tarball `@better-auth/expo@1.7.23` `dist/client.js:628-629` · tarball `expo-secure-store@58.0.3` `build/ExpoSecureStore.web.js` · tarball `better-auth@1.7.22` `client/config.mjs` |
+| Invitation sans création de compte ; `emailOTP` + `disableSignUp` refuse l'inconnu | `api.md` § Auth | tarball `better-auth@1.7.22` `plugins/organization/routes/crud-invites.mjs` · `plugins/email-otp/routes.mjs` |
+| Lot tRPC : chemins joints par une virgule ; `maxBatchSize` | `api.md` § Serveur | https://github.com/trpc/trpc/blob/main/packages/client/src/links/httpBatchLink.ts · https://trpc.io/docs/client/links/httpBatchLink |
+| `flatConfigs.typescript` enregistre le plugin `import` ; `no-restricted-paths` ignore un import non résolu | `api.md` § Verrous | https://github.com/import-js/eslint-plugin-import/blob/main/src/index.js · tarball `eslint-plugin-import@2.32.0` `lib/rules/no-restricted-paths.js` |
+| Nom de fichier généré par l'application (UUID) | `api.md` § Fichiers | https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html |
+| Une query function doit lever pour être en erreur | `api.md` § Accès aux données | https://tanstack.com/query/v5/docs/framework/react/guides/query-functions |
+| `clear()` vide les caches de requêtes et de mutations | `api.md` § Côté app | https://tanstack.com/query/v5/docs/reference/QueryClient |
+| tRPC ne relance que le 500 et l'erreur sans réponse tRPC | `api.md` § Erreurs | https://trpc.io/docs/client/links/retryLink |
+| `useSession`, client Expo `createAuthClient` de `better-auth/react`, `inferAdditionalFields` | `api.md` § Auth, § Côté app | https://better-auth.com/docs/integrations/expo · https://better-auth.com/docs/concepts/typescript |
+| ID de Better Auth en texte par défaut, `generateId: 'uuid'` | `api.md` § Auth | https://better-auth.com/docs/concepts/database |
+| Org active posée à la création de session | `api.md` § Auth | https://better-auth.com/docs/plugins/organization |
+| Safari (ITP) et cookies d'un autre domaine | `api.md` § Auth | https://better-auth.com/docs/concepts/cookies |
+| `NODE_ENV` : pile renvoyée par tRPC, rate limit de Better Auth coupé | `api.md` § Serveur | https://trpc.io/docs/server/error-handling · tarball `better-auth@1.7.23` `dist/context/create-context.mjs` |
+| `limit` borné : API4:2023 | `api.md` § Accès aux données | https://owasp.org/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption/ |
+| Procédures à plat dans `_def.procedures` (`posts.list`), leur `_def.type` | `api.md` § Tests | tarball `@trpc/server@11.28.1` `src/unstable-core-do-not-import/router.ts` (`procedures[newPath]`), `procedure.ts` (`type`) |
+| Un dossier par ressource, un fichier par procédure, un routeur qui assemble, la clé imbriquée au verbe court ; le SQL hors de la procédure (relevé le 2026-11-22) | `api.md` § Squelette | https://github.com/documenso/documenso/tree/main/packages/trpc/server (environ 210 procédures) · https://github.com/calcom/cal.com/tree/main/packages/trpc/server (164 handlers) · https://github.com/midday-ai/midday/tree/main/apps/api/src (le socle dans `trpc/`) |
+| Une feature de référence que l'agent copie | `api.md` § Squelette | https://www.thoughtworks.com/radar/techniques/anchoring-coding-agents-to-a-reference-application · https://code.claude.com/docs/en/best-practices |
+| pg-boss plutôt que BullMQ : file dans Postgres, BullMQ exige Redis (4,7 M contre 13,6 M par semaine, vérifié le 2026-11-14) | `api.md` § La stack, § Jobs | https://api.npmjs.org/downloads/point/last-week/pg-boss · https://api.npmjs.org/downloads/point/last-week/bullmq |
+| pg-boss : job dans la transaction Drizzle, file créée avant `send`, `createQueue` sans effet sur une file existante (`updateQueue`), `error` non écouté = process tué, relances, rétention 7 jours, `findJobs`, `tz` UTC par défaut, `stop` gracieux 30 s, Node 22.12 | `api.md` § Jobs, § Serveur, § Tests | tarball `pg-boss@12.38.2` `dist/adapters/drizzle.d.ts`, `dist/manager.js` (`Queue … does not exist`), `dist/types.d.ts` (`retryBackoff`), `dist/timekeeper.js` (`tz`), `dist/index.js` (`stop`), `README.md` (Requirements) |
+| `pg_cron` absent de l'image `postgres` officielle | `api.md` § Jobs | https://github.com/docker-library/postgres/blob/master/18/trixie/Dockerfile |
+| Node 26 en LTS active, 20 en fin de vie | `api.md` § La stack | https://github.com/nodejs/Release/blob/main/schedule.json |
+| Compose : SIGKILL 10 s après l'arrêt par défaut (`stop_grace_period`) | `api.md` § Serveur | https://docs.docker.com/reference/compose-file/services/#stop_grace_period |

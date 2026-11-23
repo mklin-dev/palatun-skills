@@ -1,0 +1,149 @@
+# Architecture — organiser une app par feature
+
+Une app web (Next.js) ou mobile (Expo) se range par feature, partout pareil. Ce fichier porte le
+commun ; le propre à la plateforme vit à côté, lu seul :
+
+- **Next.js** → `web.md` · **Expo** → `mobile.md` · **API maison** → `api.md`.
+- Le `AGENTS.md` du projet prime : un écart s'y écrit avec sa raison (`setup.md` § La doc du
+  projet).
+
+**Versions** — au bootstrap ou avant une version majeure (Next, SDK Expo), vérifier les breaking changes (`npm view`, docs officielles, context7).
+La doc Expo Router se cherche par SDK, jamais par version de package.
+
+## Geste — nouvelle feature
+
+1. Lire le `AGENTS.md` du projet : § Organisation et § Conventions (ses écarts au modèle).
+2. `features/<feature>/` + son point d'entrée ; « ça disparaîtrait avec la feature ? » décide
+   de tout le reste (§ Où je mets ce fichier).
+3. La route dans `app/` reste mince : elle importe le point d'entrée (§ Règle d'import).
+4. Les données : le gabarit de la plateforme (`web.md` § Données, après § Choisir le mode ;
+   `mobile.md` § Données). Pas de try/catch par écran : un filet global trie l'attendu (message
+   à l'utilisateur) et l'imprévu (Sentry) : `web.md` § Erreurs et chargement, `mobile.md`
+   § Réseau et hors ligne.
+5. Le lint passe (§ Règle d'import et verrou), puis la Definition of Done (`SKILL.md`).
+
+## Squelette
+
+```text
+src/
+├── app/          routes uniquement : segments, layouts, chargement, erreur
+├── features/
+│   └── <feature>/   point d'entrée + seulement les sous-dossiers qui ont du contenu :
+│                    components/  hooks/  lib/ (logique pure de la feature)
+├── components/   UI partagée par ≥ 2 features ; ui/ = primitives
+├── hooks/        hooks partagés par ≥ 2 features
+├── stores/       état client global (thème, préférences), jamais de données serveur
+└── lib/          helpers purs partagés, un fichier par sujet ; enveloppes d'une lib ou
+                  d'une ressource : client Supabase ou base, db/, auth/, env,
+                  query-client, storage, erreurs, types générés
+```
+
+- Un nouveau projet part du gabarit officiel, donc de `src/` (`@/*` → `./src/*`). Un projet
+  existant à la racine ne migre pas : l'alias suffit, et le lint commun le prend par `src: '.'`
+  (`setup.md` § ESLint).
+- Un projet qui a déjà un `utils/` le garde et y range ses nouveaux helpers purs ; le lint
+  commun le compte dans le partagé.
+- Les groupes de routes `(…)` rangent les URL ; ce ne sont pas des frontières de sécurité.
+
+## Où je mets ce fichier
+
+```text
+Ce code disparaîtrait-il avec la feature ?
+├── oui → features/<feature>/
+└── non → combien de features le consomment ?
+    ├── ≥ 2, de l'UI           → components/ (ui/ si primitive générique)
+    ├── ≥ 2, un hook React     → hooks/
+    ├── état client global     → stores/
+    └── ≥ 2, un helper pur,
+        ou enveloppe une lib   → lib/
+```
+
+- Noms : `SKILL.md` § Nommage. Un suffixe dit le rôle, préfixé par l'entité :
+
+| Rôle | Web | Mobile |
+| --- | --- | --- |
+| Point d'entrée de la route | `<Feature>Template.tsx` | `<Feature>Screen.tsx` |
+| Accès aux données | `<entité>.data.ts` | `<entité>.api.ts` |
+| Fonctions serveur / requêtes | `<entité>.actions.ts` | `<entité>.queries.ts` |
+| Schéma Zod partagé | `<entité>.schema.ts` | `<entité>.schema.ts` |
+
+- Un état client propre à une feature : `use-<feature>-store.ts` dans la feature. Un projet
+  existant garde ses noms : c'est un écart, déclaré une fois.
+
+## Règle d'import et verrou
+
+- `app/` importe le partagé et, d'une feature, son point d'entrée seul (web : aussi son
+  `.data.ts`, pour `generateMetadata`). Une feature importe le partagé, jamais `app/`.
+- **Une feature n'importe jamais une autre feature.** Le commun monte dans le partagé.
+- Le partagé n'importe jamais `features/` ni `app/` ; `lib/` n'importe que `lib/` (et `utils/`,
+  là où il reste) et des paquets.
+- `@/…` dès qu'on sort du dossier courant ; `./` entre voisins immédiats. Pas de barrel
+  `index.ts` : on importe le fichier par son chemin.
+
+**Trois verrous au lint**, sinon la règle dérive (constaté). Les deux premiers sont écrits une
+fois pour tous les projets, dans `eslint.mjs` à côté de ce fichier (`setup.md` § ESLint) :
+
+1. `import/no-restricted-paths`, zone « features isolées » : une zone par dossier de
+   `src/features/`, générée depuis le disque (un dossier créé entre seul dans le verrou) ;
+2. même règle, zone « sens unique » : le partagé ne voit ni `features/` ni `app/`, `lib/` ne
+   voit que `lib/` (et `utils/`, là où il reste), `features/` ne voit pas `app/` ;
+3. dans le projet, `no-restricted-imports` : le SDK de base et l'ORM (paquets nus, `@supabase/supabase-js`,
+   `pg`, `drizzle-orm`, **et** alias) bannis partout, sauf dans les fichiers d'accès aux
+   données et `lib/` (liste exacte : `web.md`, `mobile.md`). Le client privilégié (hors RLS)
+   vit dans un seul fichier de `lib/`, banni partout, accès aux données compris, sauf fichiers
+   nommés. Une exception = un bloc qui **répète tous les motifs** (point suivant).
+
+- `eslint.mjs` s'appuie sur le plugin `import` des presets : son peer dit ESLint 9, ses verrous
+  tirent sous ESLint 10 (vu sur eslint-plugin-import 2).
+- En flat config, deux blocs qui posent la même règle **ne fusionnent pas** : le dernier qui
+  matche remplace. Un motif transverse se réplique dans chaque bloc, sinon il disparaît, lint vert.
+- Le bloc le plus large d'abord, les exceptions ensuite ; vérifier ce qui s'applique à un fichier
+  par `eslint --print-config <fichier>`, pas en relisant la config.
+- Un test d'architecture seulement pour ce que le lint ne voit pas (route légère, `staleTime`) :
+  il liste les fichiers fautifs, après avoir vérifié que chaque regex trouve quelque chose.
+
+## Interdits
+
+- Les couches sans lecteur : `repositories/`, `use-cases/`, `gateways/`, `adapters/`, `ports/`,
+  un `services/` ou un `validations/` global sous `lib/`.
+- Un composant métier dans `components/` ; une redirection (proxy, garde de nav) prise pour une
+  sécurité : la RLS et le serveur gardent leurs contrôles.
+- Un monorepo avant qu'une deuxième app partage vraiment du code ; ensuite `apps/` + `packages/`.
+
+## Données, partout pareil
+
+### Fraîcheur
+
+Quatre paliers, choisis par ce que coûte une donnée périmée ; chaque plateforme les écrit à sa
+façon :
+
+| Palier | Exemple | Web (Next) | Mobile (TanStack) |
+| --- | --- | --- | --- |
+| Référence | contenu public, catalogue | statique, sinon `cacheLife('hours')` ¹ | `staleTime` 30 min |
+| Standard | listes métier | `cacheLife('minutes')` ¹, sinon rendu frais | 5 min |
+| Volatile | état, tableau de bord | rendu frais, `router.refresh()` | 30 à 60 s |
+| Écriture qui en dépend | stock avant commande | rendu frais, relu dans l'action | `0`, `refetchOnMount: 'always'` |
+
+- ¹ Web : le cache Next seulement pour une lecture sans dimension utilisateur (🅑) ; une lecture par
+  utilisateur ou par org, et tout en 🅐, est rendue fraîche (`web.md` § Cache). Rafraîchir sans
+  écriture : `web.md` § Données.
+
+### Lectures
+
+- **Types générés** (Supabase) pour les lectures, régénérés après chaque migration ; Zod pour les entrées
+  seules.
+- **Liste** : `order()` sur une clé stable + `limit()` explicite, sinon ordre instable et
+  troncature silencieuse.
+- **Une panne n'est pas un vide**, à la forme de la plateforme : le web rend un objet avec un
+  drapeau `failed` (le Server Component décide au rendu, sans relance côté client) ; le mobile
+  lève l'erreur (TanStack relance, garde la donnée en cache et la classe).
+- **Ce qui va jusqu'à l'écran** : le web construit un objet champ par champ (la donnée passe la
+  frontière serveur → navigateur : une colonne lue en trop part dans la page) ; le mobile garde
+  la ligne brute (déjà sur le client, filtrée par la RLS, typée par les types générés : un mapper
+  ne protégerait rien) ; derrière une API maison, le mobile rejoint le web (`api.md` § Accès aux
+  données).
+
+### TanStack Query
+
+Ses règles, du code de tous les jours : `SKILL.md` § TanStack Query ; les cas rares :
+`references/react-details.md`.
