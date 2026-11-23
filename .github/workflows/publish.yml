@@ -16,7 +16,38 @@ permissions:
   contents: read
 
 jobs:
+  # Un verrou qui ne tire plus bloque la publication. Sans id-token : les dépendances de test
+  # tournent ici, jamais dans le job qui publie. ESLint 10 aussi : un dépôt y est déjà.
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        eslint: [lockfile, '^10']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - working-directory: conventions-ts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      # Hors lockfile, mais dans ce job sans jeton, et une version de plus de 7 jours (le
+      # cooldown de Dependabot).
+      - if: matrix.eslint != 'lockfile'
+        working-directory: conventions-ts
+        env:
+          ESLINT: ${{ matrix.eslint }}
+        run: | # zizmor: ignore[adhoc-packages]
+          npm install --no-save --ignore-scripts --no-audit --no-fund \
+            --before="$(date -u -d '7 days ago' +%F)" "eslint@$ESLINT"
+      - working-directory: conventions-ts
+        run: npm test
+
   npm:
+    needs: test
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -31,7 +62,7 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
           package-manager-cache: false
-      # Une version déjà publiée ne se republie pas : relance, ou synchro qui ne change que le plugin.
+      # Une version déjà publiée ne se republie pas : une relance, ou un lancement à la main.
       - working-directory: conventions-ts
         run: |
           v=$(node -p 'require("./package.json").version')

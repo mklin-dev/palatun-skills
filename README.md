@@ -39,6 +39,13 @@ Dans son `.claude/settings.json`, commité :
 
 </details>
 
+## Le paquet npm `conventions-ts`
+
+`conventions-ts/` est publié sur npm, `@palatun/conventions-ts` : le lint commun, les hooks git et
+le skill, que chaque dépôt exécute (`conventions-ts/setup.md`). Un projet l'installe en
+devDependency, pas par le plugin ; une version neuve arrive par une PR de Dependabot, et son tag
+`conventions-ts@<version>` borne le diff qu'elle montre.
+
 ## Modifier un skill
 
 **Ne rien modifier ici** : ce dépôt est régénéré ; une correction se demande à l'auteur du plugin.

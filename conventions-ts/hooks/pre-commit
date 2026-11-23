@@ -29,9 +29,9 @@ done
 case "${HOOK_FORMAT:-all}" in lint) format=$files ;; *) format=$staged ;; esac
 [ -n "$files$format" ] || exit 0
 
-if ! command -v node >/dev/null 2>&1 || ! command -v pnpm >/dev/null 2>&1 ||
-  [ ! -d node_modules ]; then
-  echo "pre-commit : node, pnpm ou dépendances absents, contrôles sautés (la vérif d'avant PR les fera)." >&2
+# Sans dépendances, ce hook n'existe pas (il vit dans node_modules) : le .githooks du dépôt saute.
+if ! command -v node >/dev/null 2>&1 || ! command -v pnpm >/dev/null 2>&1; then
+  echo "pre-commit : node ou pnpm absent, contrôles sautés (la vérif d'avant PR les fera)." >&2
   exit 0
 fi
 # Jamais d'installation depuis le hook : pnpm installerait avant d'exécuter un lockfile tiré sans

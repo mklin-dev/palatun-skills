@@ -11,7 +11,7 @@ Tout dépôt déployé en production. Un dépôt jamais déployé : rien d'exig�
 | 1 | Settings → Advanced Security | Dependabot alerts **On**, Dependabot malware alerts **On** |
 | 2 | Settings → Advanced Security | Security updates **On** : une PR de faille dès l'avis publié, testée par la CI de PR (skill `ci-setup`, règle 6) ; pas de Renovate |
 | 3 | Bouton Watch du repo | Custom → **Security alerts** coché (sans watch, aucun mail) |
-| 4 | `.github/dependabot.yml` | **présent**, `npm` (un bloc par workspace pnpm) et `github-actions` : PR groupées, cooldown 7 jours, `mineures` fusionnée seule si verte, `a-revoir` pour un humain ; rien ne fusionne seul là où un merge met en ligne |
+| 4 | `.github/dependabot.yml` | **présent**, `npm` (un bloc par workspace pnpm) et `github-actions` : PR groupées, cooldown 7 jours, `mineures` fusionnée seule si verte, `a-revoir` pour un humain ; rien ne fusionne seul là où un merge met en ligne ; `@palatun/*` dans `a-revoir`, jamais fusionné seul (le paquet s'exécute au commit de chaque développeur) |
 | 5 | Tous les workflows | actions épinglées par SHA complet, version en commentaire (`@<sha> # v7.0.1`), montées par Dependabot `github-actions` |
 | 6 | `pnpm-workspace.yaml` | `trustPolicy: no-downgrade` + `trustPolicyIgnoreAfter: 43200` ; chaque `overrides` / `audit.ignore` commenté |
 | 7 | Compte GitHub → Settings → Notifications | **Actions** : email, workflows en échec seulement (sinon un workflow rouge passe en silence) ; **Dependabot alerts: New vulnerabilities** : email ; digest hebdo — une fois pour tous les repos |

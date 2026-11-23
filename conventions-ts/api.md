@@ -67,6 +67,7 @@ packages/api/src/
     └── lib/                        ce qui n'est pas une action : Zod partagé, formes, logique pure
 ```
 
+- **Le lint tient cet arbre** en liste blanche (`type: 'api'`, § Verrous, 3) ; le code fait foi.
 - **La clé suit le chemin** : kebab-case sur le disque, camelCase en clé (`members/set-role.ts`
   → `team.members.setRole`) ; l'export, seul dans son fichier, reprend la clé
   (`teamMembersSetRole`) ; le verbe seul, le dossier dit la ressource. Un test le tient (§ Tests).
@@ -335,8 +336,8 @@ Au lint, les trois d'`archi.md` (le 3 : `drizzle-orm` et `pg` hors de `packages/
 2. Dans `apps/mobile`, `@<scope>/api` et `@<scope>/auth` en type seulement (`allowTypeImports`
    de `@typescript-eslint/no-restricted-imports`), `@<scope>/db` jamais ; `@/lib/trpc` dans
    `*.queries.ts` et `lib/` seulement (le proxy tient lieu de SDK : `mobile.md` § Règles d'or).
-3. Les features de `packages/api` : `conventions({ dir: import.meta.dirname })` dans son
-   `eslint.config`, comme une app (`eslint.mjs`). Sans preset Next ou Expo, poser avant lui
+3. Les features de `packages/api` : `conventions({ dir: import.meta.dirname, type: 'api' })`
+   dans son `eslint.config`, comme une app (`eslint.mjs`). Sans preset Next ou Expo, poser avant lui
    `typescript-eslint`, `eslint-plugin-import` (`flatConfigs.typescript`) et
    `eslint-import-resolver-typescript` (`settings: { 'import/resolver': { typescript: true } }`) :
    sans plugin, le lint refuse de tourner ; sans résolveur, un import `@/…` passe le verrou en

@@ -1,14 +1,28 @@
 {
   "name": "@palatun/conventions-ts",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "Conventions TypeScript partagées : le skill pour les agents, le lint commun, les hooks git.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mklin-dev/palatun-skills.git",
     "directory": "conventions-ts"
   },
-  "files": ["*.md", "eslint.mjs", "hooks/", "references/", "scripts/"],
+  "files": ["*.md", "*.mjs", "hooks/", "references/", "scripts/"],
   "exports": {
     "./eslint": "./eslint.mjs"
+  },
+  "scripts": {
+    "test": "node --test 'tests/*.test.mjs'"
+  },
+  "dependencies": {
+    "eslint-plugin-boundaries": "7.4.4",
+    "eslint-plugin-check-file": "3.3.2"
+  },
+  "peerDependencies": {
+    "eslint": "^9 || ^10"
+  },
+  "devDependencies": {
+    "eslint": "9.39.5",
+    "eslint-plugin-import": "2.32.0"
   }
 }

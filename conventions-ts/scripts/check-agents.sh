@@ -1,8 +1,8 @@
 #!/bin/sh
 # La doc des agents d'un projet (setup.md § La doc du projet), joué par `pnpm verif` et la CI :
 #   sh .agents/skills/conventions-ts/scripts/check-agents.sh
-# Copié avec le skill, jamais retouché dans un dépôt ; un contrôle propre au projet vit dans son
-# script à lui, qui appelle celui-ci.
+# Publié avec le skill (le paquet), jamais retouché dans un dépôt ; un contrôle propre au projet
+# vit dans son script à lui, qui appelle celui-ci.
 set -eu
 cd "$(git rev-parse --show-toplevel)"
 fail=0

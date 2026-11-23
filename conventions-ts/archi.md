@@ -38,11 +38,14 @@ src/
                   query-client, storage, erreurs, types générés
 ```
 
+- Le lint tient cet arbre en liste blanche, l'intérieur d'une feature compris, quand le projet
+  déclare son `type` ; son propre s'y ajoute par `allow` (`setup.md` § ESLint). Le code fait foi
+  (`arbre()`, dans `eslint.mjs`).
 - Un nouveau projet part du gabarit officiel, donc de `src/` (`@/*` → `./src/*`). Un projet
   existant à la racine ne migre pas : l'alias suffit, et le lint commun le prend par `src: '.'`
   (`setup.md` § ESLint).
 - Un projet qui a déjà un `utils/` le garde et y range ses nouveaux helpers purs ; le lint
-  commun le compte dans le partagé.
+  commun le compte dans le partagé, et son arbre l'admet par `allow: ['utils']`.
 - Les groupes de routes `(…)` rangent les URL ; ce ne sont pas des frontières de sécurité.
 
 ## Où je mets ce fichier
@@ -81,7 +84,8 @@ Ce code disparaîtrait-il avec la feature ?
   `index.ts` : on importe le fichier par son chemin.
 
 **Trois verrous au lint**, sinon la règle dérive (constaté). Les deux premiers sont écrits une
-fois pour tous les projets, dans `eslint.mjs` à côté de ce fichier (`setup.md` § ESLint) :
+fois pour tous les projets, dans `eslint.mjs` à côté de ce fichier (`setup.md` § ESLint) ; avec
+`type` `expo` ou `next`, il refuse aussi `../` :
 
 1. `import/no-restricted-paths`, zone « features isolées » : une zone par dossier de
    `src/features/`, générée depuis le disque (un dossier créé entre seul dans le verrou) ;

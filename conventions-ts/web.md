@@ -40,7 +40,8 @@ Tout code applicatif qui touche Cloudflare (connexion à la base, stockage, tout
 `cloudflare:workers`) vit dans `lib/` ; les pages et les Server Actions restent du Next
 standard. Passer de Workers à un VPS tient alors en une PR (déduction) : `lib/` réécrit,
 `wrangler.jsonc`, `vite.config.ts`, `worker/index.ts` et `public/_headers` retirés.
-Le verrou `no-restricted-imports` bannit `cloudflare:workers` hors de `lib/`.
+Le lint commun (`type: 'next'`, `setup.md` § ESLint) refuse `cloudflare:*` et
+`@opennextjs/cloudflare` hors d'un `lib/`.
 
 ## Rendu
 

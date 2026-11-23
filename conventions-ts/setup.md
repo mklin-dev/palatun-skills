@@ -13,10 +13,10 @@ Ce que chaque projet porte ; un écart s'écrit dans son `AGENTS.md`, avec sa ra
   même format, et un diff ne montre que le vrai changement.
 - **Les hooks git** : celui de commit partout, celui de push sauf là où le push met en ligne
   (§ Hooks git).
-- **La copie** de ce skill, et l'`AGENTS.md` : § La doc du projet.
+- **Le paquet** de ce skill, et l'`AGENTS.md` : § La doc du projet.
 - **Un script `verif`** dans `package.json` (typecheck, lint, tests, `format:check` s'il y a
-  Prettier, et `sh .agents/skills/conventions-ts/scripts/check-agents.sh` là où le skill est
-  copié) : la vérif d'avant PR tient en une commande, le même nom partout. La CI garde une
+  Prettier, et `sh .agents/skills/conventions-ts/scripts/check-agents.sh` là où le paquet est
+  installé) : la vérif d'avant PR tient en une commande, le même nom partout. La CI garde une
   étape par commande (`ci-setup`).
 - **La CI** : skill `ci-setup`. **Les dépendances** (Dependabot, actions épinglées) :
   `references/pnpm-securite.md`.
@@ -43,20 +43,38 @@ Garde-fous :
 puis les blocs du projet :
 
 ```js
-import { conventions } from './.agents/skills/conventions-ts/eslint.mjs';
+import { conventions } from '@palatun/conventions-ts/eslint';
 
-export default [...preset, ...conventions({ dir: import.meta.dirname }), ...blocsDuProjet];
+export default [
+  ...preset,
+  ...conventions({ dir: import.meta.dirname, type: 'next' }),
+  ...blocsDuProjet,
+];
 ```
 
-`conventions({ dir })` : `dir` = `import.meta.dirname` (`__dirname` en CommonJS), jamais
-`process.cwd()` ; `src: '.'` pour un projet sans `src/` (`archi.md` § Squelette). Le détail :
-la JSDoc de `conventions()`, dans `eslint.mjs`.
+`conventions({ dir, src, type, allow })` :
+- `dir` = `import.meta.dirname` (`__dirname` en CommonJS), jamais `process.cwd()` ; `src: '.'`
+  pour un projet sans `src/` (`archi.md` § Squelette) ;
+- `type` (`expo`, `next`, `api`) : l'arbre du type en liste blanche (`archi.md` § Squelette,
+  `api.md` § Squelette ; le code fait foi : `arbre()` dans `eslint.mjs`), les noms, `../` hors
+  d'`api` ; sans lui, les seuls verrous d'import ;
+- `allow` : les chemins propres au projet, depuis `src/` (un dossier ou un motif), chacun avec
+  sa raison dans son `AGENTS.md`.
 
 Un `eslint.config` en CommonJS l'importe par `require()` (Node ≥ 22.12). Un dépôt qui l'importe
-porte la copie du skill (§ La doc du projet).
+installe le paquet (§ La doc du projet).
 
-`eslint.mjs` porte ce qui est identique partout, sans plugin (ceux du preset suffisent) :
+`eslint.mjs` porte ce qui est identique partout ; les plugins du preset suffisent, sauf pour
+l'arbre et les noms, que le paquet apporte (`eslint-plugin-boundaries`,
+`eslint-plugin-check-file`) :
 - **les verrous 1 et 2** d'`archi.md` § Règle d'import et verrou ;
+- **avec `type`** : l'arbre (`boundaries/no-unknown-files`, dont le message ne se règle pas :
+  l'`AGENTS.md` du projet y renvoie, § La doc du projet) ; les noms en kebab-case, le point
+  d'entrée en PascalCase (`SKILL.md` § Nommage) ; `../` hors du dossier, et en `next` Cloudflare
+  hors d'un `lib/` (`web.md` § Cloudflare dans lib), par `conventions-ts/no-restricted-imports` :
+  la règle native sous un autre nom, car le verrou 3 du projet pose déjà la sienne et le dernier
+  bloc effacerait l'autre. Pas en `api` : un paquet qui exporte ses sources n'a pas d'alias `@/`,
+  le client qui importe ses types le résoudrait chez lui ;
 - **`@typescript-eslint/no-floating-promises` + `no-misused-promises` en `error`** : promesse
   orpheline. Typed linting (`projectService`), en cherry-pick : tout le preset type-checked est
   bruyant. `checksVoidReturn.attributes: false`, la forme courante : `onSubmit={handleSubmit(…)}`
@@ -91,13 +109,15 @@ Des contrôles rapides du code touché, branchés par
 `"prepare": "git config core.hooksPath .githooks || true"` dans le `package.json`. Ils se
 contournent (`--no-verify`) : la vérif d'avant PR et la CI restent la barrière.
 
-**`pre-commit`** : le `.githooks/pre-commit` du dépôt, exécutable, tient en une ligne qui lance
-`hooks/pre-commit`, dans le dossier de ce skill ; ses réglages se posent devant l'`exec`,
-seulement si le projet s'écarte du défaut :
+**`pre-commit`** : le `.githooks/pre-commit` du dépôt, exécutable, lance `hooks/pre-commit`, dans
+le dossier de ce skill, et saute sans le paquet (un worktree pas encore installé) ; ses réglages
+se posent devant l'`exec`, seulement si le projet s'écarte du défaut :
 
 ```sh
 #!/bin/sh
-HOOK_PATHS='src scripts' exec sh "$(git rev-parse --show-toplevel)/.agents/skills/conventions-ts/hooks/pre-commit"
+hook="$(git rev-parse --show-toplevel)/.agents/skills/conventions-ts/hooks/pre-commit"
+[ -e "$hook" ] || { echo "pre-commit : conventions-ts absent (pnpm install), sauté." >&2; exit 0; }
+HOOK_PATHS='src scripts' exec sh "$hook"
 ```
 
 - **Le périmètre**, celui de `pnpm lint` et `pnpm format:check` : les fichiers indexés, liens
@@ -115,7 +135,9 @@ choix (mis en ligne par le push) ne le branche pas.
 
 ```sh
 #!/bin/sh
-exec sh "$(git rev-parse --show-toplevel)/.agents/skills/conventions-ts/hooks/pre-push" "$@"
+hook="$(git rev-parse --show-toplevel)/.agents/skills/conventions-ts/hooks/pre-push"
+[ -e "$hook" ] || { echo "pre-push : conventions-ts absent (pnpm install), sauté." >&2; exit 0; }
+exec sh "$hook" "$@"
 ```
 
 Un typecheck au `pre-push` est un choix du projet, écrit dans son `AGENTS.md` : il est lent, et
@@ -124,11 +146,13 @@ un hook qui casse finit contourné.
 ## La doc du projet
 
 Seul sur un dépôt, le skill installé sur le poste suffit, tant que son lint n'importe pas
-`eslint.mjs` : la CI n'a pas le poste, ce dépôt porte alors la copie. Un dépôt où d'autres
-développent sur ces conventions porte une copie de ce skill, la même d'un dépôt à l'autre,
-jamais retouchée (une équipe qui a ses propres règles n'en reçoit pas) ; `verif-feature` et les
-autres skills de consigne arrivent par un plugin Claude Code partagé, déclaré dans
-`.claude/settings.json`, sans copie : ce
+`eslint.mjs` : la CI n'a pas le poste, ce dépôt installe alors le paquet. Un dépôt où d'autres
+développent sur ces conventions l'installe aussi : `@palatun/conventions-ts` en devDependency,
+le même d'un dépôt à l'autre, jamais retouché (une équipe qui a ses propres règles ne le reçoit
+pas). Deux liens relatifs le donnent aux agents : `.agents/skills/conventions-ts` →
+`node_modules/@palatun/conventions-ts`, `.claude/rules/conventions-ts.md` → son `SKILL.md` ; sans
+`pnpm install`, ni le skill, ni la règle, ni les hooks. `verif-feature` et les autres skills de
+consigne arrivent par un plugin Claude Code partagé, déclaré dans `.claude/settings.json` : ce
 qui est propre au projet va dans son `AGENTS.md`, § Conventions (les écarts aux règles) et § Flow
 (sa vérification).
 
@@ -138,7 +162,7 @@ projet/
 ├── DESIGN.md                         s'il a une interface : son style, ses primitives s'il en a
 ├── docs/                             comment le système marche, un sujet par fichier
 ├── .agents/skills/                   les skills du projet, au chemin standard (release, grille)
-│   └── conventions-ts/               dépôt partagé : copie exacte de ce skill
+│   └── conventions-ts/         →     dépôt partagé : lien vers node_modules/@palatun/conventions-ts
 ├── .claude/skills/<x>          →     lien vers .agents/skills/<x>, sauf conventions-ts
 ├── .claude/settings.json             dépôt partagé : le plugin des skills de consigne
 ├── .claude/rules/conventions-ts.md → dépôt partagé : lien vers son SKILL.md, injecté à la
@@ -170,6 +194,8 @@ le lint :
 - une feature n'importe jamais une autre ; le commun monte dans components/, hooks/, stores/
   ou lib/ ;
 - le partagé n'importe ni features/ ni app/ ; seul l'accès aux données parle à la base.
+<avec `type` : « un fichier refusé par `boundaries/no-unknown-files` sort de l'arbre :
+`conventions-ts` (`archi.md` § Squelette), et nos `allow` dans `eslint.config` »>
 <avec une API maison : « Feature de référence : `<feature>` » (`api.md` § Squelette)>
 
 ## Conventions
@@ -199,11 +225,11 @@ reprise d'un dépôt qui l'a>
   seul paquet va dans l'`AGENTS.md` de ce paquet (monorepo) ou dans `docs/` ; pas d'`AGENTS.md`
   par feature.
 - **Rien de ce que le code, le lint ou un skill dit déjà**, ni flow perso (un flow d'équipe,
-  oui) : les règles de ce skill ne se recopient pas dans `AGENTS.md`, la copie du skill les porte.
+  oui) : les règles de ce skill ne se recopient pas dans `AGENTS.md`, le skill les porte.
   Restent les invariants de § Organisation et les écarts du projet.
-- **Dépôt partagé** : la copie dans son `.prettierignore` (une copie ne se reformate pas) ; la règle
-  `.claude/rules/conventions-ts.md` injecte `SKILL.md` (pas de lien `.claude/skills/` pour lui :
-  il arriverait deux fois). La mettre à jour : une PR qui la recopie.
+- **Dépôt partagé** : la règle `.claude/rules/conventions-ts.md` injecte `SKILL.md` (pas de lien
+  `.claude/skills/` pour lui : il arriverait deux fois). Le paquet monte par la PR de Dependabot,
+  relue et mergée par un humain (`references/pnpm-securite.md`, réglage 4).
 - **Une procédure** (release, vérif d'une PR) est un skill du projet dans `.agents/skills/`
   (le chemin standard), avec un lien dans `.claude/skills/` ; à effet de bord (release, déploiement) :
   `disable-model-invocation: true` (Claude), sinon l'agent peut la lancer seul.
