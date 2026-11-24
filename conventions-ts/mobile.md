@@ -173,6 +173,8 @@ queryFn ──► erreur ──► classifieur isolé ──┬─► retry ?   
   (`ci-setup/expo-eas.md`). Env validé par Zod en CI (`ci-setup/check.md`).
 - 3 profils EAS, pas plus : `preview` porte la config, `development` et `production` l'héritent par
   `extends`. Secrets hors du dépôt, jamais en `EXPO_PUBLIC_`.
+- Dans un monorepo (`api.md` § Squelette), Metro se règle seul et pnpm marche en installs isolées
+  (SDK ≥ 54) : ni `watchFolders` à la main, ni `nodeLinker: hoisted` par défaut.
 - Sentry, plateforme seulement : init native, wrapper metro d'Expo (sans lui, pas de Debug ID),
   plugin dans la config, intégration Expo Router ; le reste → `SKILL.md`.
 

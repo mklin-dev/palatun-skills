@@ -27,12 +27,14 @@ Sentry.init({
   sont opt-in : ne pas les ajouter suffit. Dans `dataCollection` (SDK 11), l'inverse : une clé
   absente collecte, chaque catégorie s'écrit.
 - **`setUser({ id })`** — jamais email ni PII.
-- API Node (`@sentry/node` 11) : l'init se charge par `node --import ./src/instrument.ts`, plus
-  par `--require` ; `instrument.ts` appelle l'init du module d'`api.md` § Erreurs, sans importer
-  le SDK ; Hono : `@sentry/hono`, `honoIntegration` est retiré ; tRPC : `api.md` § Erreurs.
+- API Node : l'init se charge par `node --import ./src/instrument.ts`, plus par `--require` ;
+  `instrument.ts` appelle l'init du module d'`api.md` § Erreurs, sans importer le SDK ; tRPC :
+  `api.md` § Erreurs.
+  - Hono : `init` et le middleware `sentry(app)` viennent de `@sentry/hono/node`, pas de
+    `@sentry/node`. Cet init retire l'intégration Hono automatique : sans le middleware, Hono
+    n'est plus instrumenté (vu sur @sentry/hono 11.17).
   - `onUnhandledRejectionIntegration({ mode: 'strict' })` : par défaut (`warn`), un rejet non
-    géré ne fait que journaliser et le process continue, quand Node seul sort (vu sur
-    @sentry/node 11.17).
+    géré est capturé mais le process continue, quand Node seul sort (vu sur @sentry/node 11.17).
   - Une seule porte vers Sentry, `packages/api/src/lib/observability/` (`api.md` § Erreurs) : le
     lint refuse le SDK hors d'elle.
 - Les 4xx attendues ne remontent pas (bruit) ; les 5xx / inattendues, oui.

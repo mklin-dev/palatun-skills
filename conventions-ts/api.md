@@ -20,10 +20,8 @@ alors sur le VPS, pas sur Workers (skill `infra` : `choisir-hebergement.md`, `vp
 | Jobs | pg-boss | file et cron dans la base de l'API, sans Redis (§ Jobs) |
 
 - Montent ensemble, à la dernière de leur ligne : les `@trpc/*` (peers exacts) ; `better-auth`,
-  `@better-auth/*` et le CLI `auth` (la 1.7.16 a corrigé 12 failles, dont une critique)
-  (vérifié le 2026-11-13).
-- Node : la LTS active, 26 depuis le 2026-10-28 ; la 20 est en fin de vie, pg-boss exige 22.12
-  (vérifié le 2026-11-14).
+  `@better-auth/*` et le CLI `auth`, qui publient souvent des correctifs de sécurité.
+- Node : la LTS active.
 
 ## Squelette
 
@@ -47,11 +45,9 @@ packages/
 - Un schéma inline de l'API qui suit une table se dérive sans la colonne de tenant, que la table
   exige : `createInsertSchema(posts).omit({ id: true, orgId: true, createdAt: true })` ; l'org
   vient d'`actor`, jamais de l'input (vu sur drizzle-zod 0.8).
-- Metro se règle seul en monorepo et pnpm en installs isolées marche (SDK ≥ 54) : ni
-  `watchFolders` à la main, ni `nodeLinker: hoisted` par défaut.
+- L'app Expo dans le monorepo : `mobile.md` § Tests, build et EAS.
 
-`packages/api/src` : un dossier par ressource, un fichier par action, presque rien à la racine
-(la forme de Documenso et de cal.com) :
+`packages/api/src` : un dossier par ressource, un fichier par action, presque rien à la racine :
 
 ```text
 packages/api/src/
@@ -178,7 +174,8 @@ export const postsRouter = {
   `closeSentry`. Le lint tient l'import du SDK et `console` hors de lui (§ Verrous, 6) ; un
   second `lib/observability/`, dans un autre paquet, il ne le voit pas : la relecture le refuse.
   - `apps/api` l'importe : `src/instrument.ts`, chargé par `node --import`, appelle son init ;
-    puis l'`onError` de Hono, le logger, `closeSentry` à l'arrêt.
+    puis le middleware Sentry en tête de l'app (`sentry(app)`, réexporté par le module),
+    l'`onError` de Hono, le logger, `closeSentry` à l'arrêt.
   - Un paquet plus bas ne l'importe jamais (`packages/api` importe `db`, l'inverse ferait un
     cycle) : `packages/db` reçoit un rappel de qui crée le pool (`createPool(url, { onError })`),
     `packages/auth` lève vers l'`onError` de Hono (`onAPIError: { throw: true }` ; sans lui,
@@ -268,18 +265,18 @@ export const postsRouter = {
 - **Le journal : pino**, dans le module de § Erreurs. Un logger enfant par requête porte
   l'identifiant de `requestId()`, l'utilisateur et l'org en ID seulement ; jamais une valeur SQL,
   un en-tête, un corps ni une adresse. Une `DrizzleQueryError` recopie les valeurs de la requête
-  dans son message (`params: …`, vu sur drizzle-orm 1.0 rc) : le même nettoyage sert le journal
-  et le `beforeSend` de Sentry.
+  dans son message (`params: …`, vu sur drizzle-orm 0.45 ; en 1.0, seulement avec
+  `paramsInErrors`) : le même nettoyage sert le journal et le `beforeSend` de Sentry.
 - Un webhook vérifie sa signature sur le corps brut (`await c.req.text()`), avant tout parse.
 - Une limite de débit par procédure est un middleware tRPC sur sa base, jamais un middleware
   Hono posé sur un chemin : un lot (`/api/trpc/a,b?batch=1`) y échappe. `maxBatchSize` borne la
   taille d'un lot.
-- Arrêt propre, sur `SIGTERM` et `SIGINT` :
-  `server.close(() => boss.stop().then(() => pool.end()).then(() => closeSentry()).then(() => process.exit(0)))` :
-  les requêtes en cours finissent, puis les jobs en cours (30 s au plus, vu sur pg-boss 12), puis
-  le pool ferme, puis Sentry vide sa file (`closeSentry`, de `lib/observability/` :
-  `Sentry.close(2000)` ; sans lui, les derniers événements se perdent). Le compose de l'API porte `stop_grace_period: 40s` : Docker tue à 10 s par défaut,
-  et un job coupé resterait `active` 15 min avant sa relance (vérifié le 2026-11-14).
+- Arrêt propre, sur `SIGTERM` et `SIGINT` : `server.close()`, puis, dans son rappel et dans cet
+  ordre, `boss.stop()`, `pool.end()`, `closeSentry()` et `process.exit(0)`. Les requêtes en cours
+  finissent, puis les jobs en cours (30 s au plus, vu sur pg-boss 12), puis le pool ferme, puis
+  Sentry vide sa file (sans lui, les derniers événements se perdent).
+- Le compose de l'API porte `stop_grace_period: 40s` : Docker tue à 10 s par défaut, et un job
+  coupé resterait `active` 15 min avant sa relance (vérifié le 2026-11-14).
 
 ## Jobs
 
@@ -404,6 +401,6 @@ vert. Un déplacement prouve les siens : les règles actives de chaque fichier a
 
 | On ne fait pas | Pourquoi |
 | --- | --- |
-| oRPC | trois fois moins utilisé ; son OpenAPI natif ne sert qu'à un tiers qui appellerait l'API |
+| oRPC | le même service que tRPC, en moins répandu |
 | NestJS | décorateurs et injection : plus de code par endpoint, pour une structure que tRPC et les verrous donnent |
-| REST à la main (Hono seul, Fastify, Express) | rien ne type le contrat entre l'app et l'API |
+| REST à la main (Hono seul, Express) | rien ne type le contrat entre l'app et l'API |
