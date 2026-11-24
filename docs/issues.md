@@ -2,7 +2,8 @@
 
 # 🎫 issues
 
-Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mieux on les suit.
+Crée, découpe, tient à jour et ferme les issues GitHub d'un projet : une issue par PR, une epic
+pour un chantier de plusieurs PR.
 
 <img src="img/issues.svg" alt="Une issue, une PR : la PR porte Closes #N, l'issue se ferme au merge. Une epic, sans PR, et ses sous-issues, une PR chacune, deux niveaux au plus" width="100%">
 

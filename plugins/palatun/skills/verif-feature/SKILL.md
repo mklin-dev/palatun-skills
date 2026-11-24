@@ -99,7 +99,7 @@ un second avis sur les bugs, en plus du relecteur.
 **Puis contre-vérifier** ses constats bloquants et importants, en un lot (pas les `Nit:` : une
 erreur y coûte peu ; aucun constat : pas de vérificateur ; jamais la session à sa place) : un second sous-agent neuf au modèle
 `opus`, avec le chemin absolu de `references/contre-verification.md`, le dossier de travail et
-l'arbre que le relecteur a lu ; à son retour, `git status` : un fichier qu'il aurait laissé dans
+l'arbre relu ; à son retour, `git status` : un fichier qu'il aurait laissé dans
 le dépôt passe dans le dossier de travail (`mv`) avant ⑤ : ③ relancée ne voit que le lot, et
 le bilan le nomme.
 Pourquoi : un relecteur trouve toujours quelque chose, et un faux constat corrigé coûte un fix et

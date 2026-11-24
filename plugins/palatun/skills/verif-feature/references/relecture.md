@@ -50,6 +50,7 @@ Ce que le diff laisse derrière lui, chaque point avec la retouche proposée et 
   en lire une partie, import lourd côté client, dépendance ajoutée pour un besoin qu'elle seule ne
   couvre pas ;
 - la doc qui décrit encore l'ancien comportement (README, `docs/`, `AGENTS.md`) ;
+- un fait ajouté à une doc qui vit déjà ailleurs dans le dépôt (le chercher) : un renvoi ;
 - une autre odeur de code (Fowler, *Refactoring* ch. 3), toujours en jugement (« possible X »),
   jamais en violation ; une règle du projet qui l'autorise l'emporte.
 
