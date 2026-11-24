@@ -39,7 +39,8 @@ les rattrape.
      il réécrit aussi des `package.json` (`catalog:` → version en dur) et monte des deps directes sans
      faille → tout annuler, passer par `pnpm update <paquet>` si le parent accepte la version
      corrigée, sinon par l'étape 3.
-  2. Supprimer le bloc `minimumReleaseAgeExclude` qu'il ajoute au `pnpm-workspace.yaml`.
+  2. Supprimer l'entrée qu'il ajoute au bloc `minimumReleaseAgeExclude` du `pnpm-workspace.yaml` ;
+     `@palatun/*` y reste (`minimumReleaseAge`, plus bas).
   3. Ce qui reste : le parent fige la version **exacte** (eas-cli : joi, nanoid, tar… ; miniflare : undici) → `overrides:` scopé par majeure, raison en commentaire.
   4. Correctif seulement en **majeure** (maplibre 5 → 6) : ce n'est pas un fix, c'est un chantier avec build et contrôle
      visuel. Dans l'outillage, sans risque pour l'app : classer l'alerte en *tolerable risk* avec sa raison
@@ -75,6 +76,11 @@ les rattrape.
   - **`minimumReleaseAge`**, même vérification (pnpm 11.21, rien dans le yaml : délai de 24 h) : une entrée publiée depuis moins de 24 h fait échouer tout install neuf
     (`ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`), donc tous les builds de prod, sans alerte, jusqu'à 24 h après sa
     publication. Merger un bump de la veille après ce délai.
+    - Sauf `@palatun/*` : `minimumReleaseAgeExclude: ['@palatun/*']` dans le `pnpm-workspace.yaml` de chaque
+      dépôt qui l'installe, et sa version neuve s'installe tout de suite. Le délai protège d'un paquet tiers
+      piraté ; le nôtre ne part que de notre CI, provenance signée, un mail à chaque version. Les autres
+      paquets gardent leurs 24 h. Sans la ligne, `pnpm add <paquet>@<version>` ajoute une entrée par
+      version (vu sur pnpm 11.21).
 - **Overrides pnpm 11** : le champ `pnpm` de `package.json` est ignoré en silence (« Already up to
   date », même `--force`) → `overrides:` du `pnpm-workspace.yaml` du bon workspace. Scoper par
   majeure (`'path-to-regexp@0.1.12': 0.1.13`) ou par parent (`'miniflare>sharp': ^0.35.4`),

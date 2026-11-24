@@ -155,7 +155,9 @@ Seul sur un dépôt, le skill installé sur le poste suffit, tant que son lint n
 `eslint.mjs` : la CI n'a pas le poste, ce dépôt installe alors le paquet. Un dépôt où d'autres
 développent sur ces conventions l'installe aussi : `@palatun/conventions-ts` en devDependency,
 le même d'un dépôt à l'autre, jamais retouché (une équipe qui a ses propres règles ne le reçoit
-pas). Deux liens relatifs le donnent aux agents : `.agents/skills/conventions-ts` →
+pas), et `minimumReleaseAgeExclude: ['@palatun/*']` dans son `pnpm-workspace.yaml` : une
+version s'installe dès sa publication (`references/pnpm-securite.md`, `minimumReleaseAge`). Deux
+liens relatifs le donnent aux agents : `.agents/skills/conventions-ts` →
 `node_modules/@palatun/conventions-ts`, `.claude/rules/conventions-ts.md` → son `SKILL.md` ; sans
 `pnpm install`, ni le skill, ni la règle, ni les hooks. `verif-feature` et les autres skills de
 consigne arrivent par un plugin Claude Code partagé, déclaré dans `.claude/settings.json` : ce
@@ -234,8 +236,9 @@ reprise d'un dépôt qui l'a>
   oui) : les règles de ce skill ne se recopient pas dans `AGENTS.md`, le skill les porte.
   Restent les invariants de § Organisation et les écarts du projet.
 - **Dépôt partagé** : la règle `.claude/rules/conventions-ts.md` injecte `SKILL.md` (pas de lien
-  `.claude/skills/` pour lui : il arriverait deux fois). Le paquet monte par la PR de Dependabot,
-  relue et mergée par un humain (`references/pnpm-securite.md`, réglage 4).
+  `.claude/skills/` pour lui : il arriverait deux fois). Une version publiée monte tout de suite,
+  une PR par dépôt (`pnpm update @palatun/conventions-ts`) ; la PR de Dependabot, relue et
+  mergée par un humain, rattrape un oubli (`references/pnpm-securite.md`, réglage 4).
 - **Une procédure** (release, vérif d'une PR) est un skill du projet dans `.agents/skills/`
   (le chemin standard), avec un lien dans `.claude/skills/` ; à effet de bord (release, déploiement) :
   `disable-model-invocation: true` (Claude), sinon l'agent peut la lancer seul.
