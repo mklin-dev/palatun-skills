@@ -12,7 +12,7 @@ Tout dépôt déployé en production. Un dépôt jamais déployé : rien d'exig�
 | 2 | Settings → Advanced Security | Security updates **On** : une PR de faille dès l'avis publié, testée par la CI de PR (skill `ci-setup`, règle 6) ; pas de Renovate |
 | 3 | Bouton Watch du repo | Custom → **Security alerts** coché (sans watch, aucun mail) |
 | 4 | `.github/dependabot.yml` | **présent**, `npm` (un bloc par workspace pnpm) et `github-actions` : PR groupées, au mois (`interval: monthly` ; une faille npm n'attend pas, réglage 2), cooldown 7 jours, `mineures` fusionnée seule si verte, `a-revoir` pour un humain ; rien ne fusionne seul là où un merge met en ligne ; `@palatun/*` dans `a-revoir`, jamais fusionné seul (le paquet s'exécute au commit de chaque développeur) |
-| 5 | Tous les workflows | actions épinglées par SHA complet, version en commentaire (`@<sha> # v7.0.1`), montées par Dependabot `github-actions` |
+| 5 | Tous les workflows | actions épinglées par SHA, montées par Dependabot `github-actions` (skill `ci-setup`, `check.md`, puce Épinglage) |
 | 6 | `pnpm-workspace.yaml` | `trustPolicy: no-downgrade` + `trustPolicyIgnoreAfter: 43200` ; chaque `overrides` / `audit.ignore` commenté |
 | 7 | Compte GitHub → Settings → Notifications | **Actions** : email, workflows en échec seulement (sinon un workflow rouge passe en silence) ; **Dependabot alerts: New vulnerabilities** : email ; digest hebdo — une fois pour tous les repos |
 
@@ -24,17 +24,14 @@ souvent sa branche, et une PR groupée fermée n'ignore rien, elle revient le mo
   propose plus cette majeure ; la commande marche aussi sur une PR déjà fermée.
 - Paquet monté par une autre PR : laisser la PR ouverte, Dependabot la ferme à son prochain passage.
 
-Pas d'`audit.yml` là où les alertes Dependabot sont actives : elles remplacent le `pnpm audit` de
-la CI. Sans elles (un dépôt d'équipe qui ne les active pas) : `audit.yml`, skill `ci-setup`
-(`deps-audit.md`).
+Pas d'`audit.yml` là où les alertes Dependabot sont actives (skill `ci-setup`, `deps-audit.md`).
 
 Vérifier un repo sans ouvrir l'UI (sauf les points 3 et 7, invisibles par l'API : REST `subscription` répond 404 et
 GraphQL `viewerSubscription` null sur un Watch Custom réglé) :
 `gh api repos/<o>/<r>/vulnerability-alerts -i` (204 = on) · `gh api "repos/<o>/<r>/dependabot/alerts?state=open"`.
 
 **Non couvert, en connaissance de cause** : secrets poussés dans le code (secret scanning payant sur un repo privé) ;
-failles des actions GitHub (une action épinglée par SHA n'a plus d'alerte) → seule sa montée de version par Dependabot
-les rattrape.
+failles des actions GitHub épinglées (skill `ci-setup`, `check.md`, puce Épinglage).
 
 ## Routine
 
@@ -64,8 +61,7 @@ les rattrape.
 
 - Une faille acceptée : `audit.ignore` dans `pnpm-workspace.yaml` (pnpm ≥ 11.16 ; avant :
   `auditConfig.ignoreGhsas`), justifiée en commentaire. Jamais `--ignore-unfixable` (pnpm 11) : il
-  sort toujours en 0 et réécrit le yaml, le garde-fou ne tombe jamais. Détail : `ci-setup`
-  (`deps-audit.md`), s'il est installé. En plus : `audit.ignore` et
+  sort toujours en 0 et réécrit le yaml, le garde-fou ne tombe jamais. En plus : `audit.ignore` et
   `auditConfig.ignoreGhsas` présents ensemble → `auditConfig` ignoré avec un avertissement ; `pnpm audit --ignore
   <GHSA>` écrit encore l'ancienne clé : ne pas s'en servir.
 - Un sous-workspace avec son propre `packageManager` garde SA version de pnpm : bumper les deux.
@@ -89,8 +85,9 @@ les rattrape.
       piraté ; le nôtre ne part que de notre CI, provenance signée, un mail à chaque version. Les autres
       paquets gardent leurs 24 h. Sans la ligne, `pnpm add <paquet>@<version>` ajoute une entrée par
       version (vu sur pnpm 11.21).
-- **Overrides pnpm 11** : le champ `pnpm` de `package.json` est ignoré en silence (« Already up to
-  date », même `--force`) → `overrides:` du `pnpm-workspace.yaml` du bon workspace. Scoper par
+- **pnpm 11 : la config vit dans `pnpm-workspace.yaml`** : le champ `pnpm` de `package.json` est
+  ignoré en silence (« Already up to date », même `--force`) → `overrides:` et `allowBuilds` dans le
+  `pnpm-workspace.yaml` du bon workspace. Un override se scope par
   majeure (`'path-to-regexp@0.1.12': 0.1.13`) ou par parent (`'miniflare>sharp': ^0.35.4`),
   jamais hors de la plage majeure attendue par le parent.
 - `pnpm audit` lit la même base que Dependabot (GitHub Advisory) : chiffres identiques.

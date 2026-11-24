@@ -211,9 +211,9 @@ export const postsRouter = {
 - `errorFormatter` : en prod, le message d'une `INTERNAL_SERVER_ERROR` est remplacé par un
   générique (tRPC ne masque rien de lui-même) ; un `BAD_REQUEST` de Zod porte `data.zodError`
   (`z.flattenError`) (vu sur @trpc/server 11).
-- Dans une feature : jamais un `try/catch` qui capture puis relève (l'`onError` de tRPC capture
-  déjà) ; un `catch` qui avale une erreur pour continuer (un rollback, un envoi de mail) appelle
-  `reportError`. Le journal et Sentry : `references/api-socle.md` § Observabilité.
+- Dans une feature, une erreur se lève : l'`onError` de tRPC la capture, et qui appelle
+  `reportError` : `references/api-socle.md` § Observabilité ; le lint refuse le reste (§ Verrous,
+  6).
 
 ## Versions installées de l'app
 
@@ -285,10 +285,8 @@ de `comportement()` ; le 2 reste au projet.
    `...comportement({ dir: import.meta.dirname })` après `conventions()` (`eslint.mjs`) :
    - `console` et `@sentry/*` hors de `src/lib/observability/` (`references/api-socle.md`
      § Observabilité) ;
-   - une valeur levée est une `Error` (`only-throw-error`, `prefer-promise-reject-errors`) ; une
-     `Error` native levée dans un bloc `catch` garde sa cause, `catch {}` sans paramètre compris
-     (`preserve-caught-error`) ; un `return` de promesse dans un `try` est attendu
-     (`return-await`) ;
+   - une valeur levée est une `Error` ; une `Error` native levée dans un bloc `catch` garde sa
+     cause, `catch {}` sans paramètre compris ; un `return` de promesse dans un `try` est attendu ;
    - ni `catch` vide (un commentaire le justifie), ni `catch` qui relève seul, ni `.catch` qui
      ignore l'erreur (`() => …` sans paramètre, ou un corps vide) ;
    - chaque directive `eslint-disable` nomme sa règle et porte sa raison (`-- pourquoi`) ; une

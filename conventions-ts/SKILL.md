@@ -132,8 +132,8 @@ Avant de toucher à Sentry (`init`, `setUser`, envoi d'erreurs) : lire
 
 ## Dépendances & sécurité
 
-- **Dépôt déployé en production** : checklist, PR de Dependabot, routine mensuelle, pièges
-  pnpm 11. Tout dans `references/pnpm-securite.md`, dans le dossier de ce skill.
+- **Dépôt déployé en production** : sa config pnpm et Dependabot (checklist, PR, routine, pièges
+  pnpm 11) dans `references/pnpm-securite.md`, dans le dossier de ce skill ; sa CI : `ci-setup`.
 - **`typescript` épinglé en `~6.0.3`** (vu sur typescript-eslint 8) : `latest` est TS 7, que le peer de
   typescript-eslint refuse (`< 6.1.0`) ; une montée de dépendances le garde, jusqu'à ce que ce
   peer accepte TS 7.

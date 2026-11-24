@@ -63,10 +63,8 @@ export default [
   sa raison dans son `AGENTS.md`.
 
 Le code serveur ajoute, après `conventions()`, `...comportement({ dir: import.meta.dirname })`
-(`dir` comme lui) : le journal et Sentry par le module `lib/observability/`
-(`references/api-socle.md` § Observabilité), les erreurs levées, les `catch` et les directives
-`eslint-disable` (`api.md` § Verrous, 6). Ses règles typées veulent le typed linting, comme
-`no-floating-promises`. L'app et les sites le prendront à leur tour.
+(`dir` comme lui) ; ce qu'il tient : `api.md` § Verrous, 6. Ses règles typées veulent le typed
+linting. L'app et les sites le prendront à leur tour.
 
 Un `eslint.config` en CommonJS l'importe par `require()` (Node ≥ 22.12). Un dépôt qui l'importe
 installe le paquet (§ La doc du projet).
@@ -75,21 +73,17 @@ installe le paquet (§ La doc du projet).
 l'arbre, les noms et les directives, que le paquet apporte (`eslint-plugin-boundaries`,
 `eslint-plugin-check-file`, `@eslint-community/eslint-plugin-eslint-comments`) :
 - **les verrous 1 et 2** d'`archi.md` § Règle d'import et verrou ;
-- **avec `type`** : l'arbre (`boundaries/no-unknown-files`, dont le message ne se règle pas :
-  l'`AGENTS.md` du projet y renvoie, § La doc du projet) ; les noms en kebab-case, le point
-  d'entrée en PascalCase (`SKILL.md` § Nommage) ; `../` hors du dossier, et en `next` Cloudflare
-  hors d'un `lib/` (`web.md` § Cloudflare dans lib), par `conventions-ts/no-restricted-imports` :
-  la règle native sous un autre nom, car le verrou 3 du projet pose déjà la sienne et le dernier
-  bloc effacerait l'autre. Pas en `api` : un paquet qui exporte ses sources n'a pas d'alias `@/`,
-  le client qui importe ses types le résoudrait chez lui ;
-- **`@typescript-eslint/no-floating-promises` + `no-misused-promises` en `error`** : promesse
-  orpheline. Typed linting (`projectService`), en cherry-pick : tout le preset type-checked est
-  bruyant. `checksVoidReturn.attributes: false`, la forme courante : `onSubmit={handleSubmit(…)}`
-  de React Hook Form passe tel quel, et un handler `async` nu reste interdit par `SKILL.md`
-  § TypeScript — règles, sans lint. `useEffect(async…)`, lui, `tsc` le refuse ;
-- **`@typescript-eslint/consistent-type-imports`** (autofix) : `verbatimModuleSyntax` laisse dans
-  le JS émis une classe importée pour son seul type. `typeof import('…')` reste permis
-  (`disallowTypeAnnotations: false`) : c'est la forme des mocks, `importOriginal<typeof import('…')>()` ;
+- **avec `type`** : l'arbre (son message ne se règle pas : l'`AGENTS.md` du projet y renvoie,
+  § La doc du projet), les noms (`SKILL.md` § Nommage), `../` hors du dossier et, en `next`,
+  Cloudflare hors d'un `lib/` (`web.md` § Cloudflare dans lib) ; `../` permis en `api` : un paquet
+  qui exporte ses sources n'a pas d'alias `@/`, que le client qui importe ses types résoudrait
+  chez lui ;
+- **les promesses orphelines**, en `error` : du typed linting en cherry-pick, tout le preset
+  type-checked étant bruyant ; `onSubmit={handleSubmit(…)}` de React Hook Form passe tel quel, un
+  handler `async` nu reste interdit par `SKILL.md` § TypeScript — règles, sans lint, et
+  `useEffect(async…)`, `tsc` le refuse ;
+- **les imports de type** (autofix) : `verbatimModuleSyntax` laisse dans le JS émis une classe
+  importée pour son seul type ;
 - **`react/no-unescaped-entities` coupée** : JSX échappe au runtime ; apostrophes en clair.
 
 Restent au projet, après `conventions()` :
@@ -129,7 +123,7 @@ HOOK_PATHS='src scripts' exec sh "$hook"
 
 - **Le périmètre**, celui de `pnpm lint` et `pnpm format:check` : les fichiers indexés, liens
   symboliques exclus. ESLint ne voit que ceux sous `HOOK_PATHS` (des dossiers ; défaut : tout le
-  dépôt) et d'une extension de `HOOK_EXTS` (défaut : `ts tsx mts cts js jsx mjs cjs`) ; Prettier,
+  dépôt) et d'une extension de `HOOK_EXTS` (défaut : `hooks/pre-commit`) ; Prettier,
   tous (`HOOK_FORMAT=all`, défaut, `.prettierignore` décide), ou les seuls fichiers d'ESLint
   (`HOOK_FORMAT=lint`) quand le dépôt ne formate qu'eux.
 - Il lance ESLint sans warning, puis Prettier `--check` si le projet l'a, sur la version
@@ -246,13 +240,14 @@ reprise d'un dépôt qui l'a>
   `disable-model-invocation: true` (Claude), sinon l'agent peut la lancer seul.
 - **`AGENTS.md` seul**, jamais de `CLAUDE.md` à côté : pour Claude Code, un `CLAUDE.md` masque
   l'`AGENTS.md` (une version ancienne, sans télémétrie, ne lit que `CLAUDE.md` : la mettre à jour).
-  Codex coupe sans prévenir au-delà de 32 KiB cumulés sur la chaîne d'`AGENTS.md`.
+  Codex coupe sans prévenir une chaîne d'`AGENTS.md` trop longue (`scripts/check-agents.sh`).
 - **`DESIGN.md`**, un par interface (à la racine, ou dans son app d'un monorepo), sur l'un des
   deux gabarits de `flow-design` (§ 0) : un site, tokens en tête ; une app à primitives maison,
   leur catalogue et ses recettes d'écran, tokens restés dans le code.
 - Une feature trop riche pour quelques lignes (sous-domaines, socle commun) a sa carte dans
   `docs/<feature>.md`, citée depuis § Docs et skills.
 - Jamais d'`ARCHITECTURE.md` ni d'arborescence fichier par fichier : le code la montre, elle
-  dérive. Un `docs/<sujet>.md` se cite par son chemin, jamais en `@import`.
+  dérive. Un `docs/<sujet>.md` se cite par son chemin, jamais en `@import` : Codex ne le connaît
+  pas (`scripts/check-agents.sh`).
 - Vérifier un `AGENTS.md` : `/doctor prompt-audit` (consignes contradictoires, périmées, fichier
   cité absent).

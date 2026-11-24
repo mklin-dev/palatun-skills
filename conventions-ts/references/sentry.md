@@ -35,12 +35,12 @@ Sentry.init({
   sont opt-in : ne pas les ajouter suffit. Dans `dataCollection` (SDK 11), l'inverse : une clé
   absente collecte, chaque catégorie s'écrit.
 - **`setUser({ id })`** — jamais email ni PII.
-- API Node : l'init se charge par `node --import` sur l'entrée `instrument` du bundle
-  (`references/api-socle.md` § Serveur) ; `instrument.ts` appelle l'init du module de
-  `references/api-socle.md` § Observabilité, sans importer le SDK.
+- API Node : le chargement de l'init, `references/api-socle.md` § Observabilité.
   - Hono : `init` et le middleware `sentry(app)` viennent de `@sentry/hono/node`, pas de
     `@sentry/node`. Cet init retire l'intégration Hono automatique : sans le middleware, Hono
     n'est plus instrumenté (vu sur @sentry/hono 11.17).
   - `onUnhandledRejectionIntegration({ mode: 'strict' })` : par défaut (`warn`), un rejet non
     géré est capturé mais le process continue, quand Node seul sort (vu sur @sentry/node 11.17).
-- Les 4xx attendues ne remontent pas (bruit) ; les 5xx / inattendues, oui.
+- Ce qui remonte, les 5xx et l'inattendu, pas les refus : l'API, `references/api-socle.md`
+  § Observabilité ; le web, `web.md` § Erreurs et chargement ; le mobile, `mobile.md` § Derrière
+  notre API (tRPC).

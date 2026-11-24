@@ -87,10 +87,8 @@ Ce code disparaîtrait-il avec la feature ?
 fois pour tous les projets, dans `eslint.mjs` à côté de ce fichier (`setup.md` § ESLint) ; avec
 `type` `expo` ou `next`, il refuse aussi `../` :
 
-1. `import/no-restricted-paths`, zone « features isolées » : une zone par dossier de
-   `src/features/`, générée depuis le disque (un dossier créé entre seul dans le verrou) ;
-2. même règle, zone « sens unique » : le partagé ne voit ni `features/` ni `app/`, `lib/` ne
-   voit que `lib/` (et `utils/`, là où il reste), `features/` ne voit pas `app/` ;
+1. les features isolées : un dossier créé dans `src/features/` entre seul dans le verrou ;
+2. le sens unique de la liste ci-dessus ;
 3. dans le projet, `no-restricted-imports` : le SDK de base et l'ORM (paquets nus, `@supabase/supabase-js`,
    `pg`, `drizzle-orm`, **et** alias) bannis partout, sauf dans les fichiers d'accès aux
    données et `lib/` (liste exacte : `web.md`, `mobile.md`). Le client privilégié (hors RLS)
