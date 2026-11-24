@@ -5,7 +5,7 @@ imports, verrous) : `archi.md`.
 
 **Backend par défaut : Supabase direct + RLS, sans API maison.** Une API externe ne change que
 `<entité>.api.ts` (un `fetch` au lieu du SDK) ; notre API maison (Hono + tRPC) change davantage
-(clés, session, erreurs) : `api.md`.
+(clés, session, erreurs) : § Derrière notre API, et `api.md`.
 
 ## Règles d'or
 
@@ -144,6 +144,40 @@ queryFn ──► erreur ──► classifieur isolé ──┬─► retry ?   
   quelle.
 - Clé embarquée : la clé publishable, jamais un secret.
 - 🩺 « La policy RLS est bonne mais l'app ne voit rien » → vérifier les GRANT d'abord.
+
+## Derrière notre API (tRPC)
+
+Le client de l'API maison (`api.md`), à la place de `<entité>.api.ts` et de Supabase.
+
+- `lib/trpc.ts` : `createTRPCOptionsProxy<AppRouter>`, `httpBatchLink`, superjson.
+  - Natif : `async headers()` qui **attend** `authClient.getCookie()` (asynchrone), avec
+    `credentials: 'omit'` (doc Better Auth).
+  - Web (la même app) : `headers` sans `getCookie()`, qui y rejette (expo-secure-store n'existe
+    pas sur web) ; le navigateur porte le cookie : `credentials: 'include'` par le `fetch` du
+    lien (vu sur @better-auth/expo 1.7).
+  - `maxURLLength` explicite (2083, l'exemple de la doc) et `maxItems` ≤ le `maxBatchSize` du
+    serveur : infinis par défaut, un gros lot rendrait un 400 (vu sur @trpc/client 11).
+  - Pas `httpBatchStreamLink` : aucune procédure ne stream, et React Native lui demande des
+    polyfills.
+- Le cache vit dans l'app, aux paliers d'`archi.md` § Fraîcheur ; l'API répond `no-store`
+  (`references/api-socle.md` § Serveur).
+- Le proxy remplace `<entité>.api.ts`. `<entité>.queries.ts` garde le `staleTime` :
+  `list: () => trpc.posts.list.queryOptions(undefined, { staleTime: 5 * 60_000 })`.
+- Les clés viennent de tRPC ; une mutation invalide la racine de sa feature,
+  `queryClient.invalidateQueries(trpc.posts.pathFilter())`. Invalider une autre feature passe
+  par le même proxy, sans l'exception d'import (§ Données).
+- **Les clés tRPC n'ont ni org ni user** : au changement d'org (`organization.setActive`) et à la
+  déconnexion (`authClient.signOut()` d'abord, sinon un écran monté relance sa query),
+  `queryClient.clear()` et la purge du persister.
+- Input inconnu au rendu : `enabled`, pas `skipToken` (§ Données), contre l'exemple
+  de la doc tRPC.
+- Session : `authClient.useSession()`, le hook de Better Auth, remplace le Context de § Auth et
+  session ; y tombent aussi `getClaims`, l'auto-refresh et la clé publishable.
+- Côté app, le classifieur de § Réseau et hors ligne lit `error.data?.httpStatus`
+  d'une `TRPCClientError` : absent → réseau ; 401 → déconnexion, sans toast ; 412 → écran de mise
+  à jour (`api.md` § Versions installées de l'app) ; 400 → erreurs par champ (`data.zodError`), jamais le
+  `message`, qui est le JSON des issues ; autre 4xx → refus, toast du message, sans Sentry ni
+  `retry` ; 500 et plus → bug (vu sur @trpc/client 11).
 
 ## UI plateforme
 

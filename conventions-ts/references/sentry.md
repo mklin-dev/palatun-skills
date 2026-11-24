@@ -1,8 +1,9 @@
-# Sentry : setup erreurs seulement
+# Sentry : les erreurs, et les traces vers notre API
 
 > Lu avant d'écrire ou de modifier `Sentry.init`, sur renvoi de `SKILL.md` § Observabilité — Sentry.
 
-Setup erreurs-seulement (pas d'APM payant) :
+Les erreurs partout ; un échantillon de traces là seulement où une app parle à notre API
+(`api.md`), pour relier une erreur de l'app à sa requête :
 
 ```ts
 Sentry.init({
@@ -13,10 +14,17 @@ Sentry.init({
                              // IP, cookies, en-têtes et corps. Objet complet, typé par `satisfies`, dans une constante
                              // partagée (SENTRY_DATA_COLLECTION). SDK encore sur core 10 (@sentry/react-native 8, vu sur
                              // core 10.78) : sendDefaultPii: false.
-  // PAS de tracesSampleRate : 0 n'éteint que l'envoi, l'instrumentation tournerait quand même.
-  // Sans la clé, aucun span créé.
+  // App et API maison seulement : tracesSampleRate: 0.1. Ailleurs, PAS la clé : 0 n'éteint que
+  // l'envoi, l'instrumentation tournerait quand même ; sans la clé, aucun span créé.
 })
 ```
+
+- **Les traces, app et API maison** : `tracesSampleRate: 0.1` des deux côtés.
+  - Côté app, `tracePropagationTargets: [<URL de l'API>]` : par défaut, les en-têtes de trace
+    partent vers tout hôte, S3 compris (vu sur @sentry/react-native 8). Le CORS de l'API, s'il
+    liste ses en-têtes, porte `sentry-trace` et `baggage`.
+  - Côté API, `databaseQueryData: false` dans `dataCollection` : sinon les spans emportent les
+    valeurs des requêtes SQL (vu sur @sentry/core 11).
 
 - **L'organisation en région de données UE** (Francfort), fixée à sa création et jamais changée
   ensuite : événements, sourcemaps et sauvegardes y restent ; comptes, réglages et support
@@ -27,14 +35,14 @@ Sentry.init({
   sont opt-in : ne pas les ajouter suffit. Dans `dataCollection` (SDK 11), l'inverse : une clé
   absente collecte, chaque catégorie s'écrit.
 - **`setUser({ id })`** — jamais email ni PII.
-- API Node : l'init se charge par `node --import ./src/instrument.ts`, plus par `--require` ;
-  `instrument.ts` appelle l'init du module d'`api.md` § Erreurs, sans importer le SDK ; tRPC :
-  `api.md` § Erreurs.
+- API Node : l'init se charge par `node --import` sur l'entrée `instrument` du bundle
+  (`references/api-socle.md` § Serveur), plus par `--require` ; `instrument.ts` appelle l'init
+  du module de `references/api-socle.md` § Observabilité, sans importer le SDK ; tRPC : idem.
   - Hono : `init` et le middleware `sentry(app)` viennent de `@sentry/hono/node`, pas de
     `@sentry/node`. Cet init retire l'intégration Hono automatique : sans le middleware, Hono
     n'est plus instrumenté (vu sur @sentry/hono 11.17).
   - `onUnhandledRejectionIntegration({ mode: 'strict' })` : par défaut (`warn`), un rejet non
     géré est capturé mais le process continue, quand Node seul sort (vu sur @sentry/node 11.17).
-  - Une seule porte vers Sentry, `packages/api/src/lib/observability/` (`api.md` § Erreurs) : le
-    lint refuse le SDK hors d'elle.
+  - Une seule porte vers Sentry, `packages/api/src/lib/observability/`
+    (`references/api-socle.md` § Observabilité) : le lint refuse le SDK hors d'elle.
 - Les 4xx attendues ne remontent pas (bruit) ; les 5xx / inattendues, oui.

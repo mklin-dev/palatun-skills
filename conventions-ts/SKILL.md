@@ -22,7 +22,7 @@ Un piège qui dépend d'une version porte `(vu sur <paquet> <majeure>)`, un fait
 Ici, le langage du quotidien. À côté (`~/.claude/skills/conventions-ts/`, sinon
 `.agents/skills/conventions-ts/` du dépôt), à lire avant d'agir : `archi.md` (app, version
 majeure, fichiers, données) · `web.md` / `mobile.md` (la plateforme : auth, cache, UI) · `api.md` (une API maison : Hono, tRPC) ·
-`setup.md` (socle, tsconfig, lint, hooks, `AGENTS.md` et docs d'un projet) · `references/` (Sentry, pnpm, cas rares de React) · `sources.md` (d'où
+`setup.md` (socle, tsconfig, lint, hooks, `AGENTS.md` et docs d'un projet) · `references/` (Sentry, pnpm, socle d'une API, cas rares de React) · `sources.md` (d'où
 vient chaque règle). Un renvoi vers un autre skill ne vaut que là où il est installé.
 
 ## Nommage

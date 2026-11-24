@@ -295,7 +295,7 @@ function structure({ dir, src, type, allow, fichiers }) {
 }
 
 const OBSERVABILITE = 'lib/observability';
-const JOURNAL = `le journal et Sentry passent par src/${OBSERVABILITE}/ (conventions-ts, api.md § Erreurs)`;
+const JOURNAL = `le journal et Sentry passent par src/${OBSERVABILITE}/ (conventions-ts, references/api-socle.md § Observabilité)`;
 // Un `.catch` qui ne lit pas l'erreur (`() => undefined`, `() => ''`) ou ne fait rien
 // (`(e) => {}`) : la promesse rejetée s'éteint sans trace. Échappent au sélecteur, et restent à la
 // relecture : `.catch(noop)`, `.then(ok, () => {})`, un paramètre lu nulle part.
