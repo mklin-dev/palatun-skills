@@ -16,7 +16,9 @@ Tout dépôt déployé en production. Un dépôt jamais déployé : rien d'exig�
 | 6 | `pnpm-workspace.yaml` | `trustPolicy: no-downgrade` + `trustPolicyIgnoreAfter: 43200` ; chaque `overrides` / `audit.ignore` commenté |
 | 7 | Compte GitHub → Settings → Notifications | **Actions** : email, workflows en échec seulement (sinon un workflow rouge passe en silence) ; **Dependabot alerts: New vulnerabilities** : email ; digest hebdo — une fois pour tous les repos |
 
-Pas d'`audit.yml` : les alertes Dependabot remplacent le `pnpm audit` de la CI.
+Pas d'`audit.yml` là où les alertes Dependabot sont actives : elles remplacent le `pnpm audit` de
+la CI. Sans elles (un dépôt d'équipe qui ne les active pas) : `audit.yml`, skill `ci-setup`
+(`deps-audit.md`).
 
 Vérifier un repo sans ouvrir l'UI (sauf les points 3 et 7, invisibles par l'API : REST `subscription` répond 404 et
 GraphQL `viewerSubscription` null sur un Watch Custom réglé) :
