@@ -61,12 +61,18 @@ export default [
 - `allow` : les chemins propres au projet, depuis `src/` (un dossier ou un motif), chacun avec
   sa raison dans son `AGENTS.md`.
 
+Le code serveur ajoute, après `conventions()`, `...comportement({ dir: import.meta.dirname })`
+(`dir` comme lui) : le journal et Sentry par le module `lib/observability/` (`api.md`
+§ Erreurs), les erreurs levées, les `catch` et les directives `eslint-disable` (`api.md`
+§ Verrous, 6). Ses règles typées veulent le typed linting, comme `no-floating-promises`. L'app et
+les sites le prendront à leur tour.
+
 Un `eslint.config` en CommonJS l'importe par `require()` (Node ≥ 22.12). Un dépôt qui l'importe
 installe le paquet (§ La doc du projet).
 
 `eslint.mjs` porte ce qui est identique partout ; les plugins du preset suffisent, sauf pour
-l'arbre et les noms, que le paquet apporte (`eslint-plugin-boundaries`,
-`eslint-plugin-check-file`) :
+l'arbre, les noms et les directives, que le paquet apporte (`eslint-plugin-boundaries`,
+`eslint-plugin-check-file`, `@eslint-community/eslint-plugin-eslint-comments`) :
 - **les verrous 1 et 2** d'`archi.md` § Règle d'import et verrou ;
 - **avec `type`** : l'arbre (`boundaries/no-unknown-files`, dont le message ne se règle pas :
   l'`AGENTS.md` du projet y renvoie, § La doc du projet) ; les noms en kebab-case, le point

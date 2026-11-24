@@ -8,7 +8,8 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { ESLint } from 'eslint';
 import importPlugin from 'eslint-plugin-import';
-import { conventions } from '../eslint.mjs';
+import tseslint from 'typescript-eslint';
+import { comportement, conventions } from '../eslint.mjs';
 
 // Ce que le preset du projet apporte (eslint-config-next ou -expo) ; les blocs qui exigent le
 // parseur TypeScript ou React ne posent aucun verrou et restent hors du banc.
@@ -304,4 +305,118 @@ test('next : Cloudflare hors d’un lib/ refusé, permis dedans, libre en expo',
   assert.match(surA[0], /Cloudflare reste dans un lib/);
   assert.deepEqual(await sur('src/lib/cf.ts', 'next'), []);
   assert.deepEqual(await sur('src/features/a/a.ts', 'expo'), []);
+});
+
+// Les règles de comportement du serveur (`comportement()`) : typées, donc sous le parseur de
+// TypeScript, avec le tsconfig d'un projet.
+const TSCONFIG = JSON.stringify({
+  compilerOptions: { strict: true, target: 'ES2022', module: 'preserve', types: [] },
+  include: ['src'],
+});
+
+/** Les messages d'ESLint sur `fichier` sous `comportement()`, suivi des blocs `apres`. */
+async function lintServeur(fichiers, fichier, apres = []) {
+  const dir = projet({ 'tsconfig.json': TSCONFIG, ...fichiers });
+  const eslint = new ESLint({
+    cwd: dir,
+    overrideConfigFile: true,
+    overrideConfig: [
+      {
+        files: ['**/*.ts'],
+        languageOptions: { parser: tseslint.parser },
+        plugins: { '@typescript-eslint': tseslint.plugin },
+      },
+      ...comportement({ dir }),
+      ...apres,
+    ],
+  });
+  const [resultat] = await eslint.lintFiles([path.join(dir, fichier)]);
+  return resultat.messages;
+}
+
+const regles = (messages) => messages.map((m) => m.ruleId).sort();
+
+test('comportement : console et @sentry/* seulement dans lib/observability/', async () => {
+  const source =
+    "import * as Sentry from '@sentry/node';\n" +
+    "console.error('a');\nglobalThis.console.warn('b');\nexport const s = Sentry;\n";
+  const fichiers = {
+    'src/features/a/a.ts': source,
+    'src/lib/observability/logger.ts': source,
+  };
+  const attendues = ['conventions-ts/console', 'conventions-ts/console', 'conventions-ts/sentry'];
+  const dehors = await lintServeur(fichiers, 'src/features/a/a.ts');
+  assert.deepEqual(regles(dehors), attendues);
+  assert.match(dehors.find((m) => m.ruleId === 'conventions-ts/console').message, /observability/);
+  assert.deepEqual(await lintServeur(fichiers, 'src/lib/observability/logger.ts'), []);
+  // Un bloc du projet qui pose les règles natives après comportement() ne l'efface pas.
+  const projetApres = {
+    rules: {
+      'no-restricted-globals': ['error', 'event'],
+      'no-restricted-imports': ['error', 'pg'],
+      'no-restricted-syntax': ['error', 'WithStatement'],
+    },
+  };
+  assert.deepEqual(
+    regles(await lintServeur(fichiers, 'src/features/a/a.ts', [projetApres])),
+    attendues,
+  );
+});
+
+test('comportement : une Error levée, sa cause gardée, aucun catch muet', async () => {
+  const fautes = [
+    'export async function f(x: unknown): Promise<number> {',
+    "  if (x === 1) throw 'non';",
+    "  if (x === 2) return Promise.reject('non');",
+    "  try { JSON.parse(String(x)); } catch (e) { throw new Error('illisible'); }",
+    "  try { JSON.parse(String(x)); } catch { throw new Error('illisible'); }",
+    '  try { JSON.parse(String(x)); } catch (e) { throw e; }',
+    '  try { JSON.parse(String(x)); } catch {}',
+    '  await Promise.resolve().catch(() => {});',
+    '  await Promise.resolve().catch(() => undefined);',
+    '  await Promise.resolve().catch((e: unknown) => {});',
+    '  try { return Promise.resolve(1); } finally { JSON.parse(String(x)); }',
+    '}',
+  ].join('\n');
+  assert.deepEqual(regles(await lintServeur({ 'src/a.ts': fautes }, 'src/a.ts')), [
+    '@typescript-eslint/only-throw-error',
+    '@typescript-eslint/prefer-promise-reject-errors',
+    '@typescript-eslint/return-await',
+    'conventions-ts/catch',
+    'conventions-ts/catch',
+    'conventions-ts/catch',
+    'no-empty',
+    'no-useless-catch',
+    'preserve-caught-error',
+    'preserve-caught-error',
+  ]);
+  const juste = [
+    'declare function reportError(e: unknown): void;',
+    // Un traducteur d'erreur relève ce qu'il ne traduit pas (api.md § Accès aux données).
+    'export function traduire(e: unknown): never { throw e; }',
+    'export async function f(x: unknown): Promise<number> {',
+    "  if (x === 1) throw new Error('non');",
+    "  try { JSON.parse(String(x)); } catch (e) { throw new Error('illisible', { cause: e }); }",
+    '  try { JSON.parse(String(x)); } catch { /* un JSON illisible vaut une absence */ }',
+    '  await Promise.resolve().catch((e: unknown) => reportError(e));',
+    '  try { return await Promise.resolve(1); } finally { JSON.parse(String(x)); }',
+    '}',
+  ].join('\n');
+  assert.deepEqual(await lintServeur({ 'src/a.ts': juste }, 'src/a.ts'), []);
+});
+
+test('comportement : une directive nomme sa règle, porte sa raison et sert', async () => {
+  const sur = async (source) => lintServeur({ 'src/a.ts': source }, 'src/a.ts');
+  const directive = '// eslint-disable-next-line conventions-ts/console';
+  assert.deepEqual(regles(await sur(`${directive}\nconsole.log(1);\n`)), [
+    'conventions-ts/require-description',
+  ]);
+  assert.deepEqual(await sur(`${directive} -- la trace du démarrage\nconsole.log(1);\n`), []);
+  assert.deepEqual(regles(await sur('/* eslint-disable -- tout le fichier */\nconsole.log(1);\n')), [
+    'conventions-ts/no-unlimited-disable',
+  ]);
+  const inutile = await sur('// eslint-disable-next-line no-empty -- rien à couper\nexport {};\n');
+  assert.equal(inutile.length, 1);
+  assert.equal(inutile[0].severity, 2);
+  assert.match(inutile[0].message, /Unused eslint-disable directive/);
 });

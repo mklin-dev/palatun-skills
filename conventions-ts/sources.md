@@ -1,6 +1,6 @@
 # conventions-ts — sources
 
-Relevées du 2026-10-26 au 2026-11-14 par recherche (registre npm, sources des paquets, docs officielles). « § X »
+Relevées du 2026-10-26 au 2026-11-24 par recherche (registre npm, sources des paquets, docs officielles). « § X »
 seul renvoie au `SKILL.md`. Une règle qui dépend d'une version (son marqueur : `SKILL.md`) ou
 tranche contre l'usage cite sa source ici ; la vérifier avant de rouvrir la règle.
 
@@ -68,6 +68,14 @@ tranche contre l'usage cite sa source ici ; la vérifier avant de rouvrir la rè
 | Middlewares intégrés de Hono ; arrêt propre dans le callback de `server.close` | `api.md` § Serveur | https://hono.dev/docs/middleware/builtin/cors · https://hono.dev/docs/getting-started/nodejs |
 | PUT présigné sans borne de taille ; POST policy `content-length-range` | `api.md` § Fichiers | https://github.com/scaleway/docs-content/blob/main/pages/object-storage/api-cli/post-object.mdx |
 | Metro auto en monorepo ; pnpm isolé depuis SDK 54 | `api.md` § Squelette | https://docs.expo.dev/guides/monorepos/ |
+| Les conventions de comportement au lint, pas en prose : les agents ignorent 67 % des consignes de log, des patchs corrects violent 43 % des règles d'un dépôt (recherche du 2026-11-24) | `api.md` § Verrous, 6 | https://arxiv.org/abs/2604.09409 · https://arxiv.org/abs/2610.06193 |
+| Un module unique vers le journal et Sentry, appelé à quelques points, jamais à la place des intégrations | `api.md` § Erreurs | https://github.com/formbricks/formbricks (`reportApiError`) · https://docs.sentry.io/platforms/javascript/guides/hono/manual-setup/ |
+| Le middleware Hono de Sentry ne voit pas tRPC ; `onUnhandledRejection` en `warn` par défaut | `api.md` § Erreurs, `references/sentry.md` | tarballs `@sentry/server-utils@11.17.0` (`integrations/hono/`) et `@sentry/node@11.17.0` (`integrations/onunhandledrejection.js`) · tarball `@hono/trpc-server@0.4.2` |
+| `dataCollection` : une clé absente collecte (SDK 11) | `references/sentry.md` | https://github.com/getsentry/sentry-javascript/blob/develop/MIGRATION.md |
+| pino, un logger par requête ; `DrizzleQueryError` recopie les valeurs | `api.md` § Serveur | https://github.com/pinojs/pino/blob/main/docs/web.md · tarball `drizzle-orm@1.0.0-rc.5` (`errors.js`) |
+| `no-restricted-globals` + `checkGlobalObject`, `preserve-caught-error`, `only-throw-error`, `return-await`, `require-description` | `api.md` § Verrous, 6 | https://eslint.org/docs/latest/rules/no-restricted-globals · https://eslint.org/docs/latest/rules/preserve-caught-error · https://typescript-eslint.io/rules/only-throw-error/ · https://typescript-eslint.io/rules/return-await/ · https://eslint-community.github.io/eslint-plugin-eslint-comments/rules/require-description.html |
+| Better Auth avale ses erreurs sans `onAPIError: { throw: true }` | `api.md` § Erreurs | https://www.better-auth.com/docs/reference/options (`onAPIError`) · un test de la route d'auth sur Hono, vu rouge sans l'option (2026-11-24) |
+| Appel anonyme de chaque procédure : API5:2023 | `api.md` § Tests | https://owasp.org/API-Security/editions/2023/en/0xa5-broken-function-level-authorization/ |
 | Sentry 11 : `dataCollection` permissif par défaut, `--import`, `@sentry/hono` | `references/sentry.md` | https://github.com/getsentry/sentry-javascript/blob/develop/MIGRATION.md |
 | `createInsertSchema` exige une colonne `notNull` sans défaut | `api.md` § Squelette | tarball `drizzle-zod@0.8.3` `index.mjs` |
 | Erreur `pg` enveloppée par Drizzle (`cause`) ; tRPC fait un 500 de toute erreur hors `TRPCError` | `api.md` § Accès aux données | tarball `drizzle-orm@0.45.4` `errors.js` · https://github.com/trpc/trpc/blob/main/packages/server/src/unstable-core-do-not-import/error/TRPCError.ts |

@@ -5,14 +5,43 @@
 //
 // `import`, `@typescript-eslint` et `react` viennent du preset (eslint-config-next ou
 // eslint-config-expo), résolveur des alias `@/` compris ; l'arbre et les noms, des deux plugins du
-// paquet, posés seulement avec `type`.
+// paquet, posés seulement avec `type`. Le code serveur ajoute comportement() : le journal, Sentry,
+// les erreurs levées et les directives.
 import { existsSync, readdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 
-// Les plugins de l'arbre et des noms se chargent avec `type` seulement : un dépôt qui importe ce
-// fichier à sa source, sans installer le paquet ni ses dépendances, garde les seuls verrous d'import.
+// Les plugins se chargent à l'appel de structure() ou de comportement() seulement : un dépôt qui
+// importe ce fichier à sa source, sans installer le paquet ni ses dépendances, garde les seuls
+// verrous d'import.
 const charger = createRequire(import.meta.url);
+
+let plugin;
+/**
+ * Les règles natives, sous des noms à nous : en config plate, deux blocs qui posent la même règle
+ * ne fusionnent pas (archi.md § Règle d'import et verrou), et les projets posent déjà
+ * `no-restricted-imports` (et sa version `@typescript-eslint`) pour leur verrou 3,
+ * `no-restricted-syntax` pour leurs formes : sous l'un de ces noms, le dernier bloc effacerait
+ * l'autre, lint vert. Un seul objet : deux objets déclarés sous le même nom de plugin font échouer
+ * ESLint.
+ */
+function local() {
+  if (plugin) return plugin;
+  const natives = charger('eslint/use-at-your-own-risk').builtinRules;
+  const directives = charger('@eslint-community/eslint-plugin-eslint-comments').rules;
+  plugin = {
+    meta: { name: 'conventions-ts' },
+    rules: {
+      'no-restricted-imports': natives.get('no-restricted-imports'),
+      console: natives.get('no-restricted-globals'),
+      sentry: natives.get('no-restricted-imports'),
+      catch: natives.get('no-restricted-syntax'),
+      'require-description': directives['require-description'],
+      'no-unlimited-disable': directives['no-unlimited-disable'],
+    },
+  };
+  return plugin;
+}
 
 const VERROU = "conventions-ts, archi.md § Règle d'import et verrou";
 const NOMMAGE = 'conventions-ts, SKILL.md § Nommage';
@@ -178,18 +207,6 @@ export function conventions({ dir, src = 'src', type, allow = [] } = {}) {
 function structure({ dir, src, type, allow, fichiers }) {
   const boundaries = charger('eslint-plugin-boundaries');
   const checkFile = charger('eslint-plugin-check-file');
-  // La règle native, sous un nom à nous : en config plate, deux blocs qui posent la même règle ne
-  // fusionnent pas (archi.md § Règle d'import et verrou), et les projets posent déjà
-  // `no-restricted-imports` et sa version `@typescript-eslint` pour leur verrou 3 : sous l'un de
-  // ces noms, le dernier bloc effacerait l'autre, lint vert.
-  const local = {
-    meta: { name: 'conventions-ts' },
-    rules: {
-      'no-restricted-imports': charger('eslint/use-at-your-own-risk').builtinRules.get(
-        'no-restricted-imports',
-      ),
-    },
-  };
   const S = src === '.' ? '' : `${src}/`;
   const propres = allow.flatMap((a) => {
     const p = a.replace(/\/+$/, '');
@@ -258,7 +275,7 @@ function structure({ dir, src, type, allow, fichiers }) {
           {
             name: 'conventions-ts/imports',
             files: [fichiers],
-            plugins: { 'conventions-ts': local },
+            plugins: { 'conventions-ts': local() },
             rules: { 'conventions-ts/no-restricted-imports': ['error', { patterns: imports }] },
           },
         ]
@@ -269,10 +286,97 @@ function structure({ dir, src, type, allow, fichiers }) {
           {
             name: 'conventions-ts/imports-lib',
             files: [[fichiers, '**/lib/**']],
-            plugins: { 'conventions-ts': local },
+            plugins: { 'conventions-ts': local() },
             rules: { 'conventions-ts/no-restricted-imports': ['error', { patterns: [PARENT] }] },
           },
         ]
       : []),
+  ];
+}
+
+const OBSERVABILITE = 'lib/observability';
+const JOURNAL = `le journal et Sentry passent par src/${OBSERVABILITE}/ (conventions-ts, api.md § Erreurs)`;
+// Un `.catch` qui ne lit pas l'erreur (`() => undefined`, `() => ''`) ou ne fait rien
+// (`(e) => {}`) : la promesse rejetée s'éteint sans trace. Échappent au sélecteur, et restent à la
+// relecture : `.catch(noop)`, `.then(ok, () => {})`, un paramètre lu nulle part.
+const CATCH_MUET =
+  "CallExpression[callee.property.name='catch'] > :function:matches([params.length=0], [body.type='BlockStatement'][body.body.length=0])";
+
+/**
+ * Les règles de comportement du code serveur (api.md § Verrous, 6), après conventions() dans le
+ * lint de chaque paquet du serveur : le journal et Sentry par le seul `lib/observability/` du
+ * paquet, une valeur levée est une `Error` (sa cause gardée dans un bloc `catch`), ni `catch`
+ * vide ni `.catch` qui ignore l'erreur, une directive `eslint-disable` nomme sa règle, porte sa
+ * raison et sert.
+ * @param {{ dir: string, src?: string }} options comme conventions().
+ */
+export function comportement({ dir, src = 'src' } = {}) {
+  if (!dir || !existsSync(path.join(dir, src))) {
+    throw new Error(`conventions-ts : ${dir}/${src} introuvable (dir : comme conventions()).`);
+  }
+  const plugins = { 'conventions-ts': local() };
+  const fichiers = `${src}/**/*.${EXT}`;
+  return [
+    {
+      name: 'conventions-ts/journal',
+      files: [fichiers],
+      ignores: [`${src}/${OBSERVABILITE}/**`],
+      plugins,
+      rules: {
+        // `checkGlobalObject` : `globalThis.console` aussi, que `no-console` laisse passer.
+        'conventions-ts/console': [
+          'error',
+          { globals: [{ name: 'console', message: JOURNAL }], checkGlobalObject: true },
+        ],
+        'conventions-ts/sentry': [
+          'error',
+          { patterns: [{ group: ['@sentry/*'], message: JOURNAL }] },
+        ],
+      },
+    },
+    {
+      name: 'conventions-ts/erreurs',
+      files: [`${src}/**/*.{ts,tsx}`],
+      languageOptions: { parserOptions: { projectService: true, tsconfigRootDir: dir } },
+      rules: {
+        // Une chaîne ou un objet levé perd sa pile. Un `unknown` se relève tel quel : l'erreur
+        // attrapée, ou celle qu'un traducteur reçoit et ne traduit pas.
+        '@typescript-eslint/only-throw-error': ['error', { allowThrowingAny: false }],
+        '@typescript-eslint/prefer-promise-reject-errors': 'error',
+        // Un `return promesse` dans un `try` échappe à son `catch` ; ailleurs, libre.
+        '@typescript-eslint/return-await': ['error', 'error-handling-correctness-only'],
+      },
+    },
+    {
+      name: 'conventions-ts/catch',
+      files: [fichiers],
+      plugins,
+      rules: {
+        // Une `Error` native levée dans un bloc `catch` garde sa cause, `catch {}` sans paramètre
+        // compris. Le rappel d'un `.catch()` et une classe maison (`TRPCError`) lui échappent.
+        'preserve-caught-error': ['error', { requireCatchParameter: true }],
+        'no-useless-catch': 'error',
+        // Un `catch` vide se justifie par un commentaire, qui le rend non vide.
+        'no-empty': 'error',
+        'conventions-ts/catch': [
+          'error',
+          {
+            selector: CATCH_MUET,
+            message:
+              "un .catch lit l'erreur, puis la rapporte ou la relève avec sa cause ; un repli voulu porte sa directive et sa raison (conventions-ts, api.md § Verrous, 6)",
+          },
+        ],
+      },
+    },
+    {
+      name: 'conventions-ts/directives',
+      files: [fichiers],
+      plugins,
+      linterOptions: { reportUnusedDisableDirectives: 'error' },
+      rules: {
+        'conventions-ts/require-description': 'error',
+        'conventions-ts/no-unlimited-disable': 'error',
+      },
+    },
   ];
 }

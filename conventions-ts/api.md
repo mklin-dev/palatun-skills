@@ -172,8 +172,29 @@ export const postsRouter = {
 - `errorFormatter` : en prod, le message d'une `INTERNAL_SERVER_ERROR` est remplacé par un
   générique (tRPC ne masque rien de lui-même) ; un `BAD_REQUEST` de Zod porte `data.zodError`
   (`z.flattenError`) (vu sur @trpc/server 11).
-- Sentry : l'`onError` du handler tRPC n'envoie que l'`INTERNAL_SERVER_ERROR`. Pas
-  `trpcMiddleware`, qui capture aussi les refus et joint l'input selon `dataCollection` (vu sur
+- **Un seul chemin vers le journal et Sentry : `packages/api/src/lib/observability/`**, exporté
+  par un sous-chemin (`@<scope>/api/observability`) : le logger (§ Serveur), l'init de Sentry,
+  `reportError(error, contexte)`, qui journalise, retire les valeurs sensibles, puis capture, et
+  `closeSentry`. Le lint tient l'import du SDK et `console` hors de lui (§ Verrous, 6) ; un
+  second `lib/observability/`, dans un autre paquet, il ne le voit pas : la relecture le refuse.
+  - `apps/api` l'importe : `src/instrument.ts`, chargé par `node --import`, appelle son init ;
+    puis l'`onError` de Hono, le logger, `closeSentry` à l'arrêt.
+  - Un paquet plus bas ne l'importe jamais (`packages/api` importe `db`, l'inverse ferait un
+    cycle) : `packages/db` reçoit un rappel de qui crée le pool (`createPool(url, { onError })`),
+    `packages/auth` lève vers l'`onError` de Hono (`onAPIError: { throw: true }` ; sans lui,
+    Better Auth avale ses erreurs, vu sur better-auth 1.7).
+- `reportError` n'est appelé que par :
+  - l'`onError` du handler tRPC, pour tout statut ≥ 500 (`getHTTPStatusCodeFromError`), pas
+    l'`INTERNAL_SERVER_ERROR` seul : un 503 levé est aussi une panne ;
+  - l'`onError` de Hono, pour les routes hors tRPC, Better Auth compris ;
+  - l'écouteur `error` de pg-boss et chaque handler de job (§ Jobs) ;
+  - un `catch` qui avale une erreur pour continuer (un rollback, un envoi de mail).
+- Le reste, exception non capturée et rejet non géré, revient aux intégrations du SDK. Jamais un
+  `try/catch` par procédure qui capture puis relève : l'`onError` de tRPC capture déjà, et
+  l'événement partirait deux fois.
+- Le middleware Hono de Sentry ne voit pas une erreur de tRPC : `@hono/trpc-server` rend la
+  réponse lui-même (vu sur @sentry/hono 11.17). L'`onError` de tRPC reste le seul point.
+- Pas `trpcMiddleware`, qui capture aussi les refus et joint l'input selon `dataCollection` (vu sur
   @sentry/core 11). L'init : `references/sentry.md`.
 - Côté app, le classifieur de `mobile.md` § Réseau et hors ligne lit `error.data?.httpStatus`
   d'une `TRPCClientError` : absent → réseau ; 401 → déconnexion, sans toast ; 400 → erreurs par
@@ -244,14 +265,20 @@ export const postsRouter = {
   reste est une procédure. Middlewares : `cors`, `bodyLimit`, `secureHeaders`, `requestId`.
 - `NODE_ENV` exigé par le schéma d'`env.ts`, `production` sur le VPS : sans lui, tRPC renvoie la
   pile d'appels, et le rate limit de Better Auth comme Sentry sont coupés.
+- **Le journal : pino**, dans le module de § Erreurs. Un logger enfant par requête porte
+  l'identifiant de `requestId()`, l'utilisateur et l'org en ID seulement ; jamais une valeur SQL,
+  un en-tête, un corps ni une adresse. Une `DrizzleQueryError` recopie les valeurs de la requête
+  dans son message (`params: …`, vu sur drizzle-orm 1.0 rc) : le même nettoyage sert le journal
+  et le `beforeSend` de Sentry.
 - Un webhook vérifie sa signature sur le corps brut (`await c.req.text()`), avant tout parse.
 - Une limite de débit par procédure est un middleware tRPC sur sa base, jamais un middleware
   Hono posé sur un chemin : un lot (`/api/trpc/a,b?batch=1`) y échappe. `maxBatchSize` borne la
   taille d'un lot.
 - Arrêt propre, sur `SIGTERM` et `SIGINT` :
-  `server.close(() => boss.stop().then(() => pool.end()).then(() => process.exit(0)))` : les
-  requêtes en cours finissent, puis les jobs en cours (30 s au plus, vu sur pg-boss 12), puis le
-  pool ferme. Le compose de l'API porte `stop_grace_period: 40s` : Docker tue à 10 s par défaut,
+  `server.close(() => boss.stop().then(() => pool.end()).then(() => closeSentry()).then(() => process.exit(0)))` :
+  les requêtes en cours finissent, puis les jobs en cours (30 s au plus, vu sur pg-boss 12), puis
+  le pool ferme, puis Sentry vide sa file (`closeSentry`, de `lib/observability/` :
+  `Sentry.close(2000)` ; sans lui, les derniers événements se perdent). Le compose de l'API porte `stop_grace_period: 40s` : Docker tue à 10 s par défaut,
   et un job coupé resterait `active` 15 min avant sa relance (vérifié le 2026-11-14).
 
 ## Jobs
@@ -259,14 +286,14 @@ export const postsRouter = {
 - Un travail hors requête (envoi de push, purge, rappel planifié) : pg-boss, dans la base de
   l'API. Ni Redis, ni `pg_cron`, absent de l'image `postgres` officielle (vérifié le 2026-11-14).
 - `packages/api/src/lib/jobs/jobs.ts` porte l'instance, sans import de feature, et son écouteur
-  `boss.on('error', (e) => Sentry.captureException(e))` : sans lui, une coupure de la base tue le
+  `boss.on('error', (e) => reportError(e))` : sans lui, une coupure de la base tue le
   process, routes HTTP comprises.
 - `src/workers.ts`, comme `root.ts` les routeurs, exporte deux fonctions (vu sur pg-boss 12) :
   - `createQueues()` : `createQueue` puis `updateQueue`, avec les mêmes options (`retryLimit`,
     `retryBackoff`) : `createQueue` ignore celles d'une file qui existe, et `send` lève sur une
     file absente ;
   - `startWorkers()` : `boss.work` et `boss.schedule`. Chaque handler capture son erreur
-    (`Sentry.captureException`), puis la lève à nouveau : un job qui échoue ne prévient personne
+    (`reportError`), puis la lève à nouveau : un job qui échoue ne prévient personne
     d'autre, et l'erreur levée garde ses relances.
 - Au démarrage : `await boss.start()`, `await createQueues()`, `startWorkers()`, puis `serve()`.
 - **Le job naît dans la transaction de l'écriture qui le cause**, dans le `.data.ts`, qui porte
@@ -325,6 +352,11 @@ Une version des stores reste installée après une mise en prod de l'API, et auc
   objet que `appRouter._def.procedures['<chemin>']` (tRPC y range la procédure elle-même) ; puis
   chaque procédure de la table a son fichier. Rougissent : une action orpheline, une procédure
   écrite dans le routeur, une clé qui ne suit plus son fichier.
+- **Un test tient l'accès** (OWASP API5:2023) : il appelle chaque procédure de
+  `appRouter._def.procedures` par `createCaller`, sans session ni input, et exige
+  `UNAUTHORIZED`, sauf une liste `PUBLIC` écrite dans le test. Rougissent : une procédure neuve
+  sur `publicProcedure`, et une qui valide son input avant l'auth (`.input()` posé avant la base
+  protégée), qui répondrait `BAD_REQUEST` à un inconnu.
 
 ## Verrous
 
@@ -349,6 +381,20 @@ Au lint, les trois d'`archi.md` (le 3 : `drizzle-orm` et `pg` hors de `packages/
    son fichier d'action, passerait le test de l'arbre et échapperait à cette forme.
 5. `src/trpc/` n'importe aucune feature (`import/no-restricted-paths`) : le chemin d'une requête
    ne dépend d'aucune d'elles.
+6. Le comportement, dans le lint de chaque paquet du serveur (`apps/api`, `packages/*`) :
+   `...comportement({ dir: import.meta.dirname })` après `conventions()` (`eslint.mjs`) :
+   - `console` et `@sentry/*` hors de `src/lib/observability/` (§ Erreurs) ;
+   - une valeur levée est une `Error` (`only-throw-error`, `prefer-promise-reject-errors`) ; une
+     `Error` native levée dans un bloc `catch` garde sa cause, `catch {}` sans paramètre compris
+     (`preserve-caught-error`) ; un `return` de promesse dans un `try` est attendu
+     (`return-await`) ;
+   - ni `catch` vide (un commentaire le justifie), ni `catch` qui relève seul, ni `.catch` qui
+     ignore l'erreur (`() => …` sans paramètre, ou un corps vide) ;
+   - chaque directive `eslint-disable` nomme sa règle et porte sa raison (`-- pourquoi`) ; une
+     directive qui ne coupe plus rien rougit. Un repli voulu (`.catch(() => '')` sur un corps
+     lu pour le journal) porte la sienne.
+   - Restent à la relecture : la cause d'une `TRPCError` ou d'une erreur levée dans un
+     `.catch()`, `.catch(noop)`, `.then(ok, () => {})`, un paramètre d'erreur lu nulle part.
 
 Un verrou se vise par un chemin : un fichier déplacé sans le suivre le perd, et le lint reste
 vert. Un déplacement prouve les siens : les règles actives de chaque fichier avant et après
