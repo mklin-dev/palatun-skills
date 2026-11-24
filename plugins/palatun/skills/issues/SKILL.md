@@ -19,14 +19,21 @@ Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mie
 - **Une issue = une PR.** La PR porte `Closes #N` dans sa description : l'issue se ferme au merge
   sur la branche par défaut. Une PR qui ne tient pas tout le « Fini quand » : le reste part dans
   une issue neuve avant le merge. Un lot (le même geste sur plusieurs unités) : son issue liste
-  les unités, sa PR les livre toutes.
+  les unités, sa PR les livre toutes ; un audit qui sort plusieurs gestes en fait autant de lots.
+- **Une PR se relit d'une passe** : au-delà d'environ 400 lignes prévues, hors tests, fichiers
+  générés, déplacements, renommages et fichiers supprimés, le design la coupe en plusieurs issues,
+  une PR chacune, à la suite (3 ou plus : § Epic) ; un lot aussi, par unités.
+  Pourquoi : une relecture rate des défauts au-delà de 200 à 400 lignes (SmartBear), 1 000 est
+  « usually too large », et un fichier supprimé compte pour une ligne
+  (https://google.github.io/eng-practices/review/developer/small-cls.html).
 - Titre en clair. Corps, dans cet ordre :
   - le besoin et ce qu'il faut, avec l'approche retenue et pourquoi si un choix l'a tranchée ;
   - **« Fini quand »** : des critères qu'on vérifie (une commande, un écran, un test), pas une
     intention ;
   - **les fichiers pressentis**, revérifiés dans le code au lancement ; une `task` n'en a pas ;
-  - **`## Todo`**, en dernier : les étapes, ou les unités d'un lot ; une issue créée d'avance le
-    reçoit au lancement.
+  - **`## Todo`**, en dernier : les étapes, ou les unités d'un lot ; une ligne = un commit, avec sa
+    preuve (la commande, l'écran ou le test qui la vérifie) ; une issue créée d'avance le reçoit
+    au lancement.
 - **Un seul label** : `bug` (ça casse), `enhancement` (feature, amélioration), `task` (un geste
   humain sans code, fermé à la main ou par l'automate qui l'a ouvert), `epic`. Pas de jalon.
 
