@@ -151,8 +151,9 @@ Le détail va dans `bilan.md`, au dossier de travail, sous les mêmes blocs :
    « à trancher » (options et recommandation) et `Nit:` ; un constat confirmé qu'un test, un lint ou une
    règle aurait évité : le garde-fou proposé, jamais écrit d'office ; à tester (geste → attendu)
    et le chemin de la planche avant/après.
-4. **À savoir** : chaque exigence non prouvée, et pourquoi ; le rayon d'impact (migration,
-   interface publique, client déjà installé, geste irréversible) ; ce qui a été sauté (et
+4. **À savoir** : chaque exigence non prouvée, et pourquoi ; le rayon d'impact, qui fait relire
+   la PR « lentement » (migration, données, prod, interface publique, client déjà installé,
+   garde-fou : mot exact, permission, hook, suppression ; geste irréversible) ; ce qui a été sauté (et
    pourquoi), ou arbitré à la place de l'utilisateur (et le coût si c'est faux) ; les écartés,
    une ligne chacun (réfutés, préexistants, hors du lot, déclinés).
 

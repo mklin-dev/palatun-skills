@@ -27,7 +27,7 @@ tranche contre l'usage cite sa source ici ; la vérifier avant de rouvrir la rè
 | Routes seules dans `app/`, partagé à la racine de `src/` | `archi.md` § Squelette | https://docs.expo.dev/router/basics/core-concepts/ · https://github.com/expo/expo/tree/main/templates/expo-template-default/src |
 | Next.js sans structure imposée, découpage par feature permis | `archi.md` § Squelette | https://nextjs.org/docs/app/getting-started/project-structure |
 | Sens unique, features isolées par le lint, pas de barrel | `archi.md` § Règle d'import et verrou | https://github.com/alan2207/bulletproof-react/blob/master/docs/project-structure.md · https://tkdodo.eu/blog/please-stop-using-barrel-files |
-| Verrou sous ESLint 10 (`import-x`) | `archi.md` § Règle d'import et verrou | https://github.com/un-ts/eslint-plugin-import-x · https://eslint.org/docs/v9.x/use/core-concepts/glossary |
+| Verrou sous ESLint 10 (`eslint-plugin-import` 2) | `archi.md` § Règle d'import et verrou | https://github.com/import-js/eslint-plugin-import · https://eslint.org/docs/v9.x/use/core-concepts/glossary |
 | Kebab-case (usage majoritaire, pas une règle officielle) | § Nommage | https://expo.dev/blog/expo-app-folder-structure-best-practices · https://ui.shadcn.com/docs/components-json |
 | Accès aux données `server-only` dans la feature, action mince qui délègue | `web.md` § Données, § Actions | https://nextjs.org/docs/app/guides/data-security |
 | `proxy.ts` remplace `middleware.ts` | `web.md` § Fichiers propres au web | https://nextjs.org/docs/app/api-reference/file-conventions/proxy |

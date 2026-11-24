@@ -43,8 +43,8 @@ Dans son `.claude/settings.json`, commité :
 
 `conventions-ts/` est publié sur npm, `@palatun/conventions-ts` : le lint commun, les hooks git et
 le skill, que chaque dépôt exécute (`conventions-ts/setup.md`). Un projet l'installe en
-devDependency, pas par le plugin ; une version neuve arrive par une PR de Dependabot, et son tag
-`conventions-ts@<version>` borne le diff qu'elle montre.
+devDependency, pas par le plugin ; sa montée dans les dépôts : `conventions-ts/setup.md` § La doc
+du projet. Le tag `conventions-ts@<version>` borne le diff que montre une PR de Dependabot.
 
 ## Modifier un skill
 
