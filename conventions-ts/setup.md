@@ -57,15 +57,16 @@ export default [
   pour un projet sans `src/` (`archi.md` § Squelette) ;
 - `type` (`expo`, `next`, `api`) : l'arbre du type en liste blanche (`archi.md` § Squelette,
   `api.md` § Squelette ; le code fait foi : `arbre()` dans `eslint.mjs`), les noms, `../` hors
-  d'`api` ; sans lui, les seuls verrous d'import ;
+  d'`api` ; en `api`, les verrous de tRPC (`api.md` § Verrous, 1, 4 et 5) ; sans lui, les seuls
+  verrous d'import ;
 - `allow` : les chemins propres au projet, depuis `src/` (un dossier ou un motif), chacun avec
   sa raison dans son `AGENTS.md`.
 
 Le code serveur ajoute, après `conventions()`, `...comportement({ dir: import.meta.dirname })`
-(`dir` comme lui) : le journal et Sentry par le module `lib/observability/` (`api.md`
-§ Erreurs), les erreurs levées, les `catch` et les directives `eslint-disable` (`api.md`
-§ Verrous, 6). Ses règles typées veulent le typed linting, comme `no-floating-promises`. L'app et
-les sites le prendront à leur tour.
+(`dir` comme lui) : le journal et Sentry par le module `lib/observability/`
+(`references/api-socle.md` § Observabilité), les erreurs levées, les `catch` et les directives
+`eslint-disable` (`api.md` § Verrous, 6). Ses règles typées veulent le typed linting, comme
+`no-floating-promises`. L'app et les sites le prendront à leur tour.
 
 Un `eslint.config` en CommonJS l'importe par `require()` (Node ≥ 22.12). Un dépôt qui l'importe
 installe le paquet (§ La doc du projet).

@@ -24,14 +24,14 @@ La liste à tenir ; le comment vit dans la section citée (« socle » : `refere
 | | la sortie en colonnes nommées ; une liste paginée par curseur | § Accès aux données |
 | | un `create` rejoué ne crée pas de doublon | § Accès aux données |
 | | une action sensible laisse une ligne d'audit | § Accès aux données |
-| Auth | session Better Auth par cookie, durées écrites | socle § Auth |
+| Auth | session Better Auth par cookie, CSRF bloqué, durées écrites | socle § Auth |
 | | un droit = une permission, posée par la base de procédure | § Procédures |
 | | le compte se supprime depuis l'app ; un compte de test pour les stores | socle § Auth |
 | Débit et coût | une limite par IP de confiance et par adresse ; un plafond par action coûteuse | socle § Auth, § Serveur |
 | Robustesse | tout borné dans le temps : SQL, transaction, appel sortant | socle § Serveur |
 | | une panne lève ; un refus a son code | § Erreurs |
 | Cache | dans l'app (TanStack) ; l'API répond `no-store` | mobile § Derrière notre API, socle § Serveur |
-| Observabilité | un seul module vers le journal et Sentry, les 5xx seuls, avec release et contexte | socle § Observabilité |
+| Observabilité | un seul module ; à Sentry les 5xx, avec release et contexte ; au journal les refus | socle § Observabilité |
 | Exploitation | jobs en base, nés dans la transaction ; fichiers par URL présignée | socle § Jobs, § Fichiers |
 | | build bundlé, image sans root, arrêt propre, `/health` | socle § Serveur |
 | Preuve | isolation, accès, droits, arbre et noms tenus par des tests | § Tests |
@@ -64,8 +64,7 @@ packages/
 └── validators/  schémas Zod lus par l'app ET l'API (formulaire et input)
 ```
 
-- La forme vient de create-t3-turbo ; ses versions, figées depuis 2025-12, ne se copient pas
-  (vérifié le 2026-11-13).
+- La forme vient de create-t3-turbo ; ses versions, figées, ne se copient pas.
 - Le monorepo est permis : deux apps partagent le type du routeur (`archi.md` § Interdits).
 - Un schéma Zod qui sert une seule procédure reste inline, dans son fichier d'action ; partagé
   par plusieurs, dans le `lib/` de la feature. `packages/validators` n'importe
@@ -92,7 +91,8 @@ packages/api/src/
     └── lib/                        ce qui n'est pas une action : Zod partagé, formes, logique pure
 ```
 
-- **Le lint tient cet arbre** en liste blanche (`type: 'api'`, § Verrous, 3) ; le code fait foi.
+- **Le lint tient cet arbre** en liste blanche et isole chaque feature comme une feature d'app,
+  `lib/` comme le partagé (`type: 'api'`, § Verrous, 3) ; le code fait foi.
 - **La clé suit le chemin** : kebab-case sur le disque, camelCase en clé (`members/set-role.ts`
   → `team.members.setRole`) ; l'export, seul dans son fichier, reprend la clé
   (`teamMembersSetRole`) ; le verbe seul, le dossier dit la ressource. Un test le tient (§ Tests).
@@ -102,10 +102,6 @@ packages/api/src/
   est toujours une action. Ni `index.ts` de re-export, ni alias.
 - Le SQL reste hors du fichier d'action, dans le `.data.ts` de sa ressource : le verrou 3
   d'`archi.md` repose sur ce suffixe, et une requête sert souvent plusieurs actions.
-- Le lint commun isole chaque feature comme une feature d'app, et `lib/` comme le partagé
-  (§ Verrous).
-- Un projet né avant cet arbre (2026-11-22) le garde jusqu'à son propre passage, une feature par
-  commit, la feature de référence d'abord.
 - **La feature de référence** : l'`AGENTS.md` du projet en nomme une, complète (routeur,
   actions, `.data.ts`, tests ; côté app, `.queries.ts`) ; une nouvelle feature la copie. Une
   règle du projet qui change la corrige dans la même PR ; en écart avec ce skill, le skill prime,
@@ -140,7 +136,7 @@ export const postsRouter = {
 ```
 
 - **`t` n'est pas exporté** : aucun `t.` hors de `trpc/trpc.ts`, et un `initTRPC` ailleurs, le
-  verrou 1 ci-dessous le refuse (§ Verrous). Le choix de la bonne base reste à la relecture.
+  lint le refuse (§ Verrous, 1). Le choix de la bonne base reste à la relecture.
 - **Le contexte lit la session sans jamais lever** (`auth.api.getSession({ headers })`) : le
   refus vient du middleware de la procédure.
 - **L'org et l'identité arrivent par `ctx.actor`**, posé par `orgProcedure` depuis l'appartenance
@@ -221,8 +217,8 @@ export const postsRouter = {
 
 ## Versions installées de l'app
 
-Une version des stores reste installée après une mise en prod de l'API, et aucun type ne la voit
-(pratique courante, rien d'officiel côté tRPC) :
+Une version des stores reste installée après une mise en prod de l'API, et aucun type ne la
+voit :
 
 - Changements additifs seulement : un champ d'input nouveau est optionnel ; une procédure qui
   change de forme devient une nouvelle procédure.
@@ -267,10 +263,11 @@ Une version des stores reste installée après une mise en prod de l'API, et auc
 ## Verrous
 
 Au lint, les trois d'`archi.md` (le 3 : `drizzle-orm` et `pg` hors de `packages/db` et
-`*.data.ts`) ; en plus :
+`*.data.ts`) ; en plus, les six ci-dessous. Les 1, 4 et 5 viennent de `type: 'api'` (le 3), le 6
+de `comportement()` ; le 2 reste au projet.
 
 1. `@trpc/server` en valeur : `src/trpc/trpc.ts` seulement ; les actions y prennent leur base et
-   `TRPCError`, le type `TRPCRouterRecord` reste libre (`allowTypeImports`).
+   `TRPCError`, un type reste libre (`import type`).
 2. Dans `apps/mobile`, `@<scope>/api` et `@<scope>/auth` en type seulement (`allowTypeImports`
    de `@typescript-eslint/no-restricted-imports`), `@<scope>/db` jamais ; `@/lib/trpc` dans
    `*.queries.ts` et `lib/` seulement (le proxy tient lieu de SDK : `mobile.md` § Règles d'or).
@@ -280,13 +277,10 @@ Au lint, les trois d'`archi.md` (le 3 : `drizzle-orm` et `pg` hors de `packages/
    `eslint-import-resolver-typescript` (`settings: { 'import/resolver': { typescript: true } }`) :
    sans plugin, le lint refuse de tourner ; sans résolveur, un import `@/…` passe le verrou en
    silence.
-4. La forme du handler, dans chaque fichier d'action (tout `.ts` d'une feature hors `.data.ts`,
-   tests, `.jobs.ts` et `lib/`) : l'argument de `.query()` ou `.mutation()` est une flèche dont
-   le corps est un appel, sans `ctx.db` (`no-restricted-syntax`). Les bases de procédure ne
-   s'importent ni dans un `.data.ts` ni dans un `lib/` : une procédure née là, réexportée par
-   son fichier d'action, passerait le test de l'arbre et échapperait à cette forme.
-5. `src/trpc/` n'importe aucune feature (`import/no-restricted-paths`) : le chemin d'une requête
-   ne dépend d'aucune d'elles.
+4. La forme du handler (§ Procédures), dans chaque fichier d'action. Une base de procédure ne
+   s'importe ni dans un `.data.ts`, ni dans un `.jobs.ts`, ni dans un `lib/` : une procédure née
+   là, réexportée par son fichier d'action, passerait le test de l'arbre hors de cette forme.
+5. `src/trpc/` n'importe aucune feature : le chemin d'une requête ne dépend d'aucune d'elles.
 6. Le comportement, dans le lint de chaque paquet du serveur (`apps/api`, `packages/*`) :
    `...comportement({ dir: import.meta.dirname })` après `conventions()` (`eslint.mjs`) :
    - `console` et `@sentry/*` hors de `src/lib/observability/` (`references/api-socle.md`

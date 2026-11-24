@@ -13,6 +13,9 @@
 - Monté par Hono sur `/api/auth/*`, avant tRPC ; CORS enregistré avant les routes, sur
   `/api/auth/*` et `/api/trpc/*` (l'app web y envoie son cookie), origine explicite,
   `credentials: true`, la même origine dans `trustedOrigins`.
+- CSRF : `csrf({ origin })` de Hono sur `/api/trpc/*`, avec l'origine du CORS. Il refuse un
+  formulaire envoyé d'un autre site, que le CORS laisse partir ; Better Auth vérifie déjà
+  l'origine de ses propres routes (vu sur hono 4.13 et better-auth 1.7).
 - App web et API sous le même domaine parent (`app.` et `api.`) : Safari (ITP) bloque le cookie
   d'un autre domaine.
 - Expo : plugin `expo()` côté serveur ; `trustedOrigins` porte `<scheme>://`, `exp://` en dev
@@ -107,14 +110,16 @@
     une `HTTPException` 4xx est un refus) ;
   - l'écouteur `error` de pg-boss et chaque handler de job (§ Jobs) ;
   - un `catch` qui avale une erreur pour continuer (un rollback, un envoi de mail).
+- **Les refus vont au journal, pas à Sentry** : une ligne par requête (chemin, statut, durée,
+  user et org en ID), et l'`onError` de tRPC journalise en `warn` chaque refus (401, 403, 429),
+  qu'un lot cache derrière son statut. Une connexion ratée, un droit refusé ou une rafale se
+  retrouvent ainsi (ASVS 16.3).
 - **Chaque événement porte son contexte**, posé par le module sur le scope de la requête :
   `setUser({ id })`, les tags `org_id`, `request_id`, `app_version` et `trpc.path` (toutes les
   erreurs tRPC partagent la transaction de `/api/trpc/*`). La `release` est le SHA du commit,
   `SENTRY_RELEASE` posé au build de l'image : sans elle, Sentry ne voit ni régression ni correctif
   livré. Un job tourne dans `withIsolationScope`, sinon son contexte déborde sur le suivant.
-- Le reste, exception non capturée et rejet non géré, revient aux intégrations du SDK. Jamais un
-  `try/catch` par procédure qui capture puis relève : l'`onError` de tRPC capture déjà, et
-  l'événement partirait deux fois.
+- Le reste, exception non capturée et rejet non géré, revient aux intégrations du SDK.
 - Le middleware Hono de Sentry ne voit pas une erreur de tRPC : `@hono/trpc-server` rend la
   réponse lui-même (vu sur @sentry/hono 11.17). L'`onError` de tRPC reste le seul point.
 - Pas `trpcMiddleware`, qui capture aussi les refus et joint l'input selon `dataCollection` (vu sur

@@ -307,6 +307,122 @@ test('next : Cloudflare hors d’un lib/ refusé, permis dedans, libre en expo',
   assert.deepEqual(await sur('src/features/a/a.ts', 'expo'), []);
 });
 
+// Les verrous de tRPC (`type: 'api'`) : `import type` exige le parseur de TypeScript.
+async function lintApi(fichiers, fichier, apres = []) {
+  const dir = projet(fichiers);
+  const config = conventions({ dir, type: 'api' }).filter((b) => !HORS_BANC.has(b.name));
+  const eslint = new ESLint({
+    cwd: dir,
+    overrideConfigFile: true,
+    overrideConfig: [
+      PRESET,
+      { files: ['**/*.ts'], languageOptions: { parser: tseslint.parser } },
+      ...config,
+      ...apres,
+    ],
+  });
+  const [resultat] = await eslint.lintFiles([path.join(dir, fichier)]);
+  return resultat.messages;
+}
+
+const TRPC = 'conventions-ts/trpc';
+const HANDLER = 'conventions-ts/handler';
+const BASES = 'conventions-ts/bases';
+const sur = (messages, ruleId) => messages.filter((m) => m.ruleId === ruleId);
+
+test('api, verrou 1 : @trpc/server en valeur dans src/trpc/trpc.ts seulement', async () => {
+  const fichiers = {
+    'src/trpc/trpc.ts': "import { initTRPC } from '@trpc/server';\nexport const t = initTRPC;\n",
+    'src/features/posts/by-id.ts':
+      "import { TRPCError } from '@trpc/server';\n" +
+      "import type { TRPCRouterRecord } from '@trpc/server';\n" +
+      "export { initTRPC } from '@trpc/server';\n" +
+      'export const r: TRPCRouterRecord = {};\nexport const e = TRPCError;\n',
+    'src/lib/observability/http.ts':
+      "import { getHTTPStatusCodeFromError } from '@trpc/server/http';\n" +
+      'export const s = getHTTPStatusCodeFromError;\n',
+  };
+  const fautes = sur(await lintApi(fichiers, 'src/features/posts/by-id.ts'), TRPC);
+  assert.equal(fautes.length, 2, JSON.stringify(fautes));
+  assert.match(fautes[0].message, /seulement dans src\/trpc\/trpc\.ts/);
+  assert.deepEqual(sur(await lintApi(fichiers, 'src/trpc/trpc.ts'), TRPC), []);
+  assert.deepEqual(sur(await lintApi(fichiers, 'src/lib/observability/http.ts'), TRPC), []);
+});
+
+test('api, verrou 4 : un handler tient en un appel, une base ne naît que dans une action', async () => {
+  const base = "import { orgProcedure } from '../../trpc/trpc.ts';\n";
+  const fichiers = {
+    'src/trpc/trpc.ts':
+      'export const orgProcedure = {} as any;\nexport const sessionProcedure = {} as any;\n' +
+      'export const createTRPCRouter = {} as any;\nexport class TRPCError extends Error {}\n' +
+      'export type Actor = { orgId: string };\n',
+    'src/features/posts/by-id.ts':
+      base +
+      "import { getPost } from './posts.data.ts';\n" +
+      'export const a = orgProcedure.query(async ({ ctx }) => { return getPost(ctx.db); });\n' +
+      'export const b = orgProcedure.query(({ ctx }) => ctx.db.select());\n' +
+      'export const c = orgProcedure.mutation(({ ctx: { db } }) => getPost(db));\n',
+    'src/features/posts/list.ts':
+      base +
+      "import { listPosts } from './posts.data.ts';\n" +
+      'export const postsList = orgProcedure.query(({ ctx, input }) => listPosts(ctx.db, ctx.actor, input));\n',
+    'src/features/posts/posts.data.ts':
+      "import { TRPCError, sessionProcedure, type Actor } from '../../trpc/trpc.ts';\n" +
+      'export const y = sessionProcedure.query(async () => { return 1; });\n' +
+      'export const getPost = (db: unknown, a?: Actor) => { if (!db) throw new TRPCError(); return a; };\n' +
+      'export const listPosts = getPost;\n',
+    'src/features/posts/posts.jobs.ts': base + 'export const j = orgProcedure;\n',
+    'src/features/posts/lib/shapes.ts': base + 'export const s = orgProcedure;\n',
+    'src/lib/mail/send.ts':
+      "import { createTRPCRouter } from '../../trpc/trpc';\nexport const m = createTRPCRouter;\n",
+  };
+  // Un bloc du projet qui pose les règles natives après conventions() ne les efface pas.
+  const projetApres = [
+    {
+      rules: {
+        'no-restricted-syntax': ['error', 'WithStatement'],
+        'no-restricted-imports': ['error', 'pg'],
+      },
+    },
+  ];
+  const handler = sur(await lintApi(fichiers, 'src/features/posts/by-id.ts', projetApres), HANDLER);
+  // Une faute par forme : le bloc, la requête sur ctx.db, ctx.db déstructuré.
+  assert.deepEqual(
+    handler.map((m) => m.line),
+    [3, 4, 5],
+    JSON.stringify(handler),
+  );
+  assert.match(handler[0].message, /un handler tient en un appel/);
+  assert.deepEqual(await lintApi(fichiers, 'src/features/posts/list.ts'), []);
+  for (const f of [
+    'src/features/posts/posts.data.ts',
+    'src/features/posts/posts.jobs.ts',
+    'src/features/posts/lib/shapes.ts',
+    'src/lib/mail/send.ts',
+  ]) {
+    const messages = await lintApi(fichiers, f, projetApres);
+    assert.deepEqual(sur(messages, HANDLER), [], f);
+    rougit(messages, BASES, 'une procédure naît dans son fichier d');
+  }
+});
+
+test('api, verrou 5 : src/trpc/ n’importe aucune feature', async () => {
+  const fichiers = {
+    'src/trpc/trpc.ts': "import { x } from '../features/posts/posts.data.ts';\nexport const y = x;\n",
+    'src/features/posts/posts.data.ts': 'export const x = 1;\n',
+  };
+  rougit(
+    await lintApi(fichiers, 'src/trpc/trpc.ts'),
+    'import/no-restricted-paths',
+    "src/trpc/ n'importe aucune feature",
+  );
+  // Hors du type api, ni la zone ni les verrous de tRPC.
+  const dir = projet(fichiers);
+  assert.ok(!zones({ dir, type: 'expo' }).some((z) => z.message.startsWith('src/trpc/')));
+  const blocs = conventions({ dir, type: 'expo' }).map((b) => b.name);
+  assert.ok(!blocs.includes(TRPC) && !blocs.includes(HANDLER) && !blocs.includes(BASES));
+});
+
 // Les règles de comportement du serveur (`comportement()`) : typées, donc sous le parseur de
 // TypeScript, avec le tsconfig d'un projet.
 const TSCONFIG = JSON.stringify({

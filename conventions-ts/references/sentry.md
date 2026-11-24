@@ -19,7 +19,7 @@ Sentry.init({
 })
 ```
 
-- **Les traces, app et API maison** : `tracesSampleRate: 0.1` des deux côtés.
+- **Les traces**, app et API maison :
   - Côté app, `tracePropagationTargets: [<URL de l'API>]` : par défaut, les en-têtes de trace
     partent vers tout hôte, S3 compris (vu sur @sentry/react-native 8). Le CORS de l'API, s'il
     liste ses en-têtes, porte `sentry-trace` et `baggage`.
@@ -36,13 +36,11 @@ Sentry.init({
   absente collecte, chaque catégorie s'écrit.
 - **`setUser({ id })`** — jamais email ni PII.
 - API Node : l'init se charge par `node --import` sur l'entrée `instrument` du bundle
-  (`references/api-socle.md` § Serveur), plus par `--require` ; `instrument.ts` appelle l'init
-  du module de `references/api-socle.md` § Observabilité, sans importer le SDK ; tRPC : idem.
+  (`references/api-socle.md` § Serveur) ; `instrument.ts` appelle l'init du module de
+  `references/api-socle.md` § Observabilité, sans importer le SDK.
   - Hono : `init` et le middleware `sentry(app)` viennent de `@sentry/hono/node`, pas de
     `@sentry/node`. Cet init retire l'intégration Hono automatique : sans le middleware, Hono
     n'est plus instrumenté (vu sur @sentry/hono 11.17).
   - `onUnhandledRejectionIntegration({ mode: 'strict' })` : par défaut (`warn`), un rejet non
     géré est capturé mais le process continue, quand Node seul sort (vu sur @sentry/node 11.17).
-  - Une seule porte vers Sentry, `packages/api/src/lib/observability/`
-    (`references/api-socle.md` § Observabilité) : le lint refuse le SDK hors d'elle.
 - Les 4xx attendues ne remontent pas (bruit) ; les 5xx / inattendues, oui.

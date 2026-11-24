@@ -5,7 +5,8 @@
 //
 // `import`, `@typescript-eslint` et `react` viennent du preset (eslint-config-next ou
 // eslint-config-expo), résolveur des alias `@/` compris ; l'arbre et les noms, des deux plugins du
-// paquet, posés seulement avec `type`. Le code serveur ajoute comportement() : le journal, Sentry,
+// paquet, posés seulement avec `type`, et en `api` les verrous de tRPC (api.md § Verrous, 1, 4 et
+// 5). Le code serveur ajoute comportement() : le journal, Sentry,
 // les erreurs levées et les directives.
 import { existsSync, readdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -36,6 +37,9 @@ function local() {
       console: natives.get('no-restricted-globals'),
       sentry: natives.get('no-restricted-imports'),
       catch: natives.get('no-restricted-syntax'),
+      trpc: natives.get('no-restricted-syntax'),
+      handler: natives.get('no-restricted-syntax'),
+      bases: natives.get('no-restricted-imports'),
       'require-description': directives['require-description'],
       'no-unlimited-disable': directives['no-unlimited-disable'],
     },
@@ -44,6 +48,7 @@ function local() {
 }
 
 const VERROU = "conventions-ts, archi.md § Règle d'import et verrou";
+const VERROU_API = 'conventions-ts, api.md § Verrous';
 const NOMMAGE = 'conventions-ts, SKILL.md § Nommage';
 const PARTAGE = ['components', 'hooks', 'stores', 'utils', 'lib'];
 const EXT = '{ts,tsx,js,jsx,mjs,cjs}';
@@ -166,6 +171,14 @@ export function conventions({ dir, src = 'src', type, allow = [] } = {}) {
       presents(['app']),
       `une feature n'importe jamais app/ (${VERROU})`,
     ),
+    // api, verrou 5 : le chemin d'une requête ne dépend d'aucune feature.
+    ...(type === 'api'
+      ? sens(
+          presents(['trpc']),
+          presents(['features']),
+          `src/trpc/ n'importe aucune feature : le socle sert toutes les features (${VERROU_API}, 5)`,
+        )
+      : []),
   ];
   // À la racine, les seuls dossiers de l'app : ni les scripts ni les configs.
   const sources = src === '.' ? `{app,features,${PARTAGE.join(',')}}` : src;
@@ -280,6 +293,7 @@ function structure({ dir, src, type, allow, fichiers }) {
           },
         ]
       : []),
+    ...(type === 'api' ? trpc({ S, fichiers }) : []),
     // Dans un lib/, Cloudflare est permis : le bloc répète le reste des motifs.
     ...(type === 'next'
       ? [
@@ -291,6 +305,80 @@ function structure({ dir, src, type, allow, fichiers }) {
           },
         ]
       : []),
+  ];
+}
+
+// `@trpc/server` importé ou réexporté en valeur ; `import type` reste libre, `@trpc/server/http`
+// aussi. Un fichier hors du parseur de TypeScript n'a pas d'`importKind` : tout y est valeur.
+const TRPC_VALEUR =
+  ":matches(ImportDeclaration, ExportNamedDeclaration, ExportAllDeclaration, ImportExpression)[source.value='@trpc/server']:not([importKind='type'], [exportKind='type'])";
+const HANDLER = `un handler tient en un appel à son .data.ts, ({ ctx, input }) => fn(ctx.db, ctx.actor, input), sans bloc ni requête sur ctx.db ; une règle qui exige du code vit dans le .data.ts (${VERROU_API}, 4)`;
+const HANDLER_FORMES = [
+  // L'argument de `.query()` ou `.mutation()` : une flèche au corps d'un appel, rien d'autre.
+  "CallExpression[callee.property.name=/^(query|mutation)$/] > :not(ArrowFunctionExpression[body.type='CallExpression']).arguments",
+  // `ctx.db.select()`, `ctx['db'].execute()` : la connexion se passe au `.data.ts`, sans plus.
+  "MemberExpression[object.type='MemberExpression'][object.object.name='ctx']:matches([object.property.name='db'], [object.property.value='db'])",
+  // `({ ctx: { db } }) => db.select()` : le même accès, déstructuré.
+  "ObjectPattern > Property:matches([key.name='db'], [key.value='db'])",
+];
+
+/**
+ * Les verrous de tRPC (api.md § Verrous, 1 et 4) ; le 5, `trpc/` sans feature, est une zone de
+ * conventions(). Des règles natives sous des noms à nous, comme local() l'explique.
+ */
+function trpc({ S, fichiers }) {
+  const plugins = { 'conventions-ts': local() };
+  return [
+    {
+      name: 'conventions-ts/trpc',
+      files: [fichiers],
+      ignores: [`${S}trpc/trpc.ts`],
+      plugins,
+      rules: {
+        'conventions-ts/trpc': [
+          'error',
+          {
+            selector: TRPC_VALEUR,
+            message: `@trpc/server en valeur seulement dans src/trpc/trpc.ts : une action y prend sa base et TRPCError ; un type s'importe par import type (${VERROU_API}, 1)`,
+          },
+        ],
+      },
+    },
+    {
+      // Chaque fichier d'action : tout fichier d'une feature hors du SQL, des tests, des jobs et
+      // de lib/ ; le routeur en est, il n'assemble que des actions.
+      name: 'conventions-ts/handler',
+      files: [`${S}features/**/*.${EXT}`],
+      ignores: [`${S}**/*.{data,jobs,test}.${EXT}`, `${S}features/*/lib/**`],
+      plugins,
+      rules: {
+        'conventions-ts/handler': [
+          'error',
+          ...HANDLER_FORMES.map((selector) => ({ selector, message: HANDLER })),
+        ],
+      },
+    },
+    {
+      // Une procédure née ailleurs, puis réexportée par son fichier d'action, passerait le test de
+      // l'arbre hors de la forme du handler. `TRPCError` et le type `Actor` restent libres.
+      name: 'conventions-ts/bases',
+      files: [`${S}**/*.{data,jobs}.${EXT}`, `${S}**/lib/**`],
+      plugins,
+      rules: {
+        'conventions-ts/bases': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['**/trpc/trpc', '**/trpc/trpc.*'],
+                importNamePattern: '^(\\w+Procedure|createTRPCRouter)$',
+                message: `une procédure naît dans son fichier d'action, jamais dans un .data.ts, un .jobs.ts ni un lib/ (${VERROU_API}, 4)`,
+              },
+            ],
+          },
+        ],
+      },
+    },
   ];
 }
 
