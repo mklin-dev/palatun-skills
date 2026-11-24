@@ -10,32 +10,5 @@ Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mie
 
 <img src="img/issues.svg" alt="Une issue, une PR : la PR porte Closes #N, l'issue se ferme au merge. Une epic, sans PR, et ses sous-issues, une PR chacune, deux niveaux au plus" width="100%">
 
-- **Une issue = une PR** : la PR porte `Closes #N`, l'issue se ferme au merge sur la branche par
-  défaut ; ce que la PR ne tient pas part dans une issue neuve avant le merge. Un lot : une PR pour
-  toutes ses unités. Créée sur ton accord ; un fix fait tout de suite n'en a pas besoin.
-- **À jour** à chaque point d'étape d'un chantier pas fini : son corps dit les décisions prises et
-  la prochaine étape, pour qu'une session neuve reprenne sans le chat.
-- **Son corps**, dans cet ordre : le besoin et ce qu'il faut, avec l'approche retenue et pourquoi
-  si un choix l'a tranchée ; **Fini quand** : ce qu'on vérifie (une commande, un écran, un test),
-  pas une intention ; les fichiers pressentis, revérifiés dans le code au lancement (aucun pour une
-  `task`) ; `## Todo` en dernier : les étapes, ou les unités quand le même geste se répète ; une
-  issue créée d'avance le reçoit au lancement.
-- **Un seul label** : `bug` (ça casse), `enhancement` (feature, amélioration), `task` (geste humain
-  sans code, fermé à la main), `epic`. Pas de jalon.
-- **Une epic** : à partir de 3 PR prévues au départ ; jamais de `Closes #<epic>` ; son corps :
-  l'objectif, le design, les décisions, puis « Prochaine étape : … » ; chaque partie se traite
-  comme une feature (sa sous-issue, sa Todo, son worktree, sa PR).
-- **Sans ticket** : un chantier de plusieurs PR que l'équipe suit hors de GitHub sans lui avoir
-  ouvert de ticket, ou sur ta demande, se suit dans un plan local
-  (`docs/superpowers/plans/<chantier>.md`, au checkout principal, sans date, ignoré par git),
-  tenu comme une epic ; fini, ses décisions passent dans la doc du projet, puis il part sur ton
-  mot.
-
-## Fermer, abandonner, regrouper
-
-| Situation | Geste |
-| --- | --- |
-| la PR est mergée | l'issue se ferme par `Closes` |
-| la dernière sous-issue se ferme | l'epic avec elle ; née d'un audit : quand les mêmes audits, rejoués, ne trouvent plus rien |
-| abandon | `gh issue close <n> --reason "not planned" --comment "<une phrase>"` |
-| trop d'issues | les critères des petites passent dans celle qui les absorbe ; elles se ferment `not planned`, « Repris dans #M » |
+Les règles exactes (le corps d'une issue, les labels, l'epic, le plan local, fermer, abandonner,
+regrouper) : [le skill](../plugins/palatun/skills/issues/SKILL.md).
