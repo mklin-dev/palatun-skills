@@ -236,9 +236,10 @@ reprise d'un dépôt qui l'a>
   oui) : les règles de ce skill ne se recopient pas dans `AGENTS.md`, le skill les porte.
   Restent les invariants de § Organisation et les écarts du projet.
 - **Dépôt partagé** : la règle `.claude/rules/conventions-ts.md` injecte `SKILL.md` (pas de lien
-  `.claude/skills/` pour lui : il arriverait deux fois). Une version publiée monte tout de suite,
-  une PR par dépôt (`pnpm update @palatun/conventions-ts`) ; la PR de Dependabot, relue et
-  mergée par un humain, rattrape un oubli (`references/pnpm-securite.md`, réglage 4).
+  `.claude/skills/` pour lui : il arriverait deux fois). Une version qui change le code (lint,
+  hooks, scripts) monte tout de suite, une PR par dépôt (`pnpm update @palatun/conventions-ts`) ;
+  une version de doc seule, et un oubli, arrivent par la PR de Dependabot, relue et mergée par un
+  humain (`references/pnpm-securite.md`, réglage 4).
 - **Une procédure** (release, vérif d'une PR) est un skill du projet dans `.agents/skills/`
   (le chemin standard), avec un lien dans `.claude/skills/` ; à effet de bord (release, déploiement) :
   `disable-model-invocation: true` (Claude), sinon l'agent peut la lancer seul.
