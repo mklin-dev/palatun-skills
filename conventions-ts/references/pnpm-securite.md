@@ -16,6 +16,14 @@ Tout dépôt déployé en production. Un dépôt jamais déployé : rien d'exig�
 | 6 | `pnpm-workspace.yaml` | `trustPolicy: no-downgrade` + `trustPolicyIgnoreAfter: 43200` ; chaque `overrides` / `audit.ignore` commenté |
 | 7 | Compte GitHub → Settings → Notifications | **Actions** : email, workflows en échec seulement (sinon un workflow rouge passe en silence) ; **Dependabot alerts: New vulnerabilities** : email ; digest hebdo — une fois pour tous les repos |
 
+**Une PR Dependabot ne se ferme jamais au bouton.** GitHub n'efface une branche qu'au merge, et
+Dependabot seulement celle d'une PR qu'il ferme lui-même : fermée à la main, la PR garde le plus
+souvent sa branche, et une PR groupée fermée n'ignore rien, elle revient le mois suivant.
+- Majeure refusée : `@dependabot ignore this major version` (PR groupée :
+  `@dependabot ignore <paquet> major version`). Dependabot ferme la PR, efface sa branche et ne
+  propose plus cette majeure ; la commande marche aussi sur une PR déjà fermée.
+- Paquet monté par une autre PR : laisser la PR ouverte, Dependabot la ferme à son prochain passage.
+
 Pas d'`audit.yml` là où les alertes Dependabot sont actives : elles remplacent le `pnpm audit` de
 la CI. Sans elles (un dépôt d'équipe qui ne les active pas) : `audit.yml`, skill `ci-setup`
 (`deps-audit.md`).
