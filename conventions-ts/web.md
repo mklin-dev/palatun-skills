@@ -90,8 +90,10 @@ export async function listInvoices(db: Db, actor: Actor): Promise<InvoicesRead> 
 }
 ```
 
-- Seuls `*.data.ts` et `lib/db/` parlent à la base (verrou 3 d'`archi.md`, avec `lib/auth/`
-  pour le client de session) ; ils portent `import 'server-only'` et vérifient l'autorisation.
+- Seuls `*.data.ts` et `lib/db/` parlent à la base (verrou 3 d'`archi.md` ; Better Auth, dans
+  `lib/auth/`, y passe par son adapter) ; ils portent `import 'server-only'` et vérifient
+  l'autorisation. Le lint voit l'ORM, pas une requête écrite sur la connexion reçue : hors d'un
+  `.data.ts` ou de `lib/db/`, elle reste à la relecture.
 - **L'org et l'identité arrivent par `actor`**, rendu par une garde de `lib/auth/` depuis la
   session, jamais par `params` ni par le client : sinon une URL ouvre un IDOR.
 - **La connexion arrive en 1er paramètre**, jamais fabriquée sur place : c'est ce qui le rend

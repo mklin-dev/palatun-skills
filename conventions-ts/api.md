@@ -281,8 +281,9 @@ voit :
 ## Verrous
 
 Au lint, les trois d'`archi.md` (le 3 : `drizzle-orm` et `pg` hors de `packages/db` et
-`*.data.ts`) ; en plus, les six ci-dessous. Les 1, 4 et 5 viennent de `type: 'api'` (le 3), le 6
-de `comportement()` ; le 2 reste au projet.
+`*.data.ts`) ; en plus, les six ci-dessous. Le 3 d'`archi.md` et les 1, 4 et 5 d'ici viennent de
+`type: 'api'` (le 3 ci-dessous), le 6 de `comportement()` ; du 2, le proxy vient du `type: 'expo'`
+de l'app, les paquets de l'API restent au projet.
 
 1. `@trpc/server` en valeur : `src/trpc/trpc.ts` seulement ; les actions y prennent leur base et
    `TRPCError`, un type reste libre (`import type`).

@@ -99,6 +99,27 @@ test('verrou 2 : une feature n’importe jamais app/', async () => {
   );
 });
 
+test('verrou 2 : une route ne prend pas l’intérieur d’une feature', async () => {
+  const dir = projet({
+    'src/app/dedans.ts': "import { h } from '../features/a/hooks/use-a';\nexport const r = h;\n",
+    'src/app/sous-domaine.ts':
+      "import { c } from '../features/a/detail/components/c';\nexport const r = c;\n",
+    'src/app/entree.ts':
+      "import { A } from '../features/a/AScreen';\nimport { D } from '../features/a/detail/DetailScreen';\nimport { d } from '../features/a/a.data';\nexport const r = [A, D, d];\n",
+    'src/app/lib.ts': "import { l } from '../features/a/lib/l';\nexport const r = l;\n",
+    'src/features/a/hooks/use-a.ts': 'export const h = 1;\n',
+    'src/features/a/lib/l.ts': 'export const l = 1;\n',
+    'src/features/a/detail/components/c.ts': 'export const c = 1;\n',
+    'src/features/a/detail/DetailScreen.ts': 'export const D = 1;\n',
+    'src/features/a/AScreen.ts': 'export const A = 1;\n',
+    'src/features/a/a.data.ts': 'export const d = 1;\n',
+  });
+  for (const f of ['src/app/dedans.ts', 'src/app/sous-domaine.ts', 'src/app/lib.ts']) {
+    rougit(await lint(dir, f), 'import/no-restricted-paths', "une route prend d'une feature");
+  }
+  assert.deepEqual(await lint(dir, 'src/app/entree.ts'), []);
+});
+
 test('verrous morts : le sens unique ne vise que les dossiers présents, un neuf s’allume seul', () => {
   const dir = projet({ 'src/features/a/': '', 'src/lib/': '' });
   const vises = (z) => z.flatMap((zone) => [zone.target, zone.from].flat());
@@ -329,6 +350,62 @@ const TRPC = 'conventions-ts/trpc';
 const HANDLER = 'conventions-ts/handler';
 const BASES = 'conventions-ts/bases';
 const sur = (messages, ruleId) => messages.filter((m) => m.ruleId === ruleId);
+
+const ACCES = 'conventions-ts/acces';
+
+test('verrou 3 : la base dans les .data.ts et lib/db/ (next), les .data.ts (api), tests compris', async () => {
+  const sql = "import { eq } from 'drizzle-orm';\nimport { Pool } from 'pg';\nexport const x = [eq, Pool];\n";
+  const dir = projet({
+    'src/features/a/a.actions.ts': "import { pgTable } from 'drizzle-orm/pg-core';\nexport const t = pgTable;\n",
+    'src/features/a/a.data.ts': sql,
+    'src/features/a/a.data.test.ts': sql,
+    'src/lib/db/client.ts': sql,
+    'src/lib/auth/session.ts': "import { eq } from 'drizzle-orm';\nexport const s = eq;\n",
+    'src/features/a/pg-utils.ts': "import { p } from './pg';\nexport const u = p;\n",
+    'src/features/a/pg.ts': 'export const p = 1;\n',
+    // Le schéma Zod tiré d'une table n'est pas un accès à la base (api.md § Squelette).
+    'src/features/a/create.ts':
+      "import { createInsertSchema } from 'drizzle-orm/zod';\nexport const s = createInsertSchema;\n",
+    'src/features/a/__tests__/seed.ts': sql,
+  });
+  for (const type of ['next', 'api']) {
+    rougit(await lint(dir, 'src/features/a/a.actions.ts', { type }), ACCES, 'la base');
+    for (const f of [
+      'src/features/a/a.data.ts',
+      'src/features/a/a.data.test.ts',
+      'src/features/a/pg-utils.ts',
+      'src/features/a/create.ts',
+      'src/features/a/__tests__/seed.ts',
+    ]) {
+      assert.deepEqual(sur(await lint(dir, f, { type }), ACCES), [], `${type} ${f}`);
+    }
+  }
+  assert.deepEqual(sur(await lint(dir, 'src/lib/db/client.ts', { type: 'next' }), ACCES), []);
+  rougit(await lint(dir, 'src/lib/auth/session.ts', { type: 'next' }), ACCES, 'la base');
+  assert.equal(sur(await lint(dir, 'src/lib/db/client.ts', { type: 'api' }), ACCES).length, 2);
+  // Sans type, et en expo : la base n'est pas son affaire.
+  assert.deepEqual(sur(await lint(dir, 'src/features/a/a.actions.ts'), ACCES), []);
+  assert.deepEqual(sur(await lint(dir, 'src/features/a/a.actions.ts', { type: 'expo' }), ACCES), []);
+});
+
+test('verrou 3 : le proxy tRPC dans les .queries.ts et lib/ (expo)', async () => {
+  const dir = projet({
+    'src/features/a/AScreen.tsx': "import { trpc } from '@/lib/trpc';\nexport const A = trpc;\n",
+    'src/features/a/hooks/use-a.ts': "import { createTRPCClient } from '@trpc/client';\nexport const h = createTRPCClient;\n",
+    'src/features/a/a.queries.ts': "import { trpc } from '@/lib/trpc';\nexport const q = trpc;\n",
+    'src/lib/trpc.ts':
+      "import { createTRPCClient } from '@trpc/client';\nimport { createTRPCOptionsProxy } from '@trpc/tanstack-react-query';\nexport const trpc = [createTRPCClient, createTRPCOptionsProxy];\n",
+  });
+  const type = 'expo';
+  for (const f of ['src/features/a/AScreen.tsx', 'src/features/a/hooks/use-a.ts']) {
+    rougit(await lint(dir, f, { type }), ACCES, 'le proxy tRPC');
+  }
+  for (const f of ['src/features/a/a.queries.ts', 'src/lib/trpc.ts']) {
+    assert.deepEqual(sur(await lint(dir, f, { type }), ACCES), [], f);
+  }
+  assert.deepEqual(sur(await lint(dir, 'src/features/a/AScreen.tsx', { type: 'next' }), ACCES), []);
+});
+
 
 test('api, verrou 1 : @trpc/server en valeur dans src/trpc/trpc.ts seulement', async () => {
   const fichiers = {

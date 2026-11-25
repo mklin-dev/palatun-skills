@@ -23,7 +23,7 @@ Ici, le langage du quotidien. À côté (`~/.claude/skills/conventions-ts/`, sin
 `.agents/skills/conventions-ts/` du dépôt), à lire avant d'agir : `archi.md` (app, version
 majeure, fichiers, données) · `web.md` / `mobile.md` (la plateforme : auth, cache, UI) · `api.md` (une API maison : Hono, tRPC) ·
 `setup.md` (socle, tsconfig, lint, hooks, `AGENTS.md` et docs d'un projet) · `references/` (Sentry, pnpm, la base, socle d'une API, cas rares de React) · `sources.md` (d'où
-vient chaque règle). Un renvoi vers un autre skill ne vaut que là où il est installé.
+vient chaque règle ; dans le dépôt du skill, pas dans le paquet installé). Un renvoi vers un autre skill ne vaut que là où il est installé.
 
 ## Nommage
 

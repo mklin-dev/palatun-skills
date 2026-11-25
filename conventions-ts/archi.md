@@ -82,16 +82,19 @@ Ce code disparaîtrait-il avec la feature ?
 - `@/…` dès qu'on sort du dossier courant ; `./` entre voisins immédiats. Pas de barrel
   `index.ts` : on importe le fichier par son chemin.
 
-**Trois verrous au lint**, sinon la règle dérive. Les deux premiers sont écrits une
-fois pour tous les projets, dans `eslint.mjs` à côté de ce fichier (`setup.md` § ESLint) ; avec
-`type` `expo` ou `next`, il refuse aussi `../` :
+**Trois verrous au lint**, sinon la règle dérive, écrits une fois pour tous les projets dans
+`eslint.mjs`, à côté de ce fichier (`setup.md` § ESLint). Les deux premiers tirent toujours ; le
+troisième vient avec `type`, qui refuse aussi `../` en `expo` et en `next` :
 
 1. les features isolées : un dossier créé dans `src/features/` entre seul dans le verrou ;
-2. le sens unique de la liste ci-dessus ;
-3. dans le projet, `no-restricted-imports` : l'ORM et le client de l'API (paquets nus, `pg`,
-   `drizzle-orm`, **et** alias, `@/lib/db`, `@/lib/trpc`) bannis partout, sauf dans les fichiers
-   d'accès aux données et `lib/` (liste exacte : `web.md` § Données, `mobile.md` § Règles d'or,
-   `api.md` § Verrous). Une exception = un bloc qui **répète tous les motifs** (point suivant).
+2. le sens unique de la liste ci-dessus ; une route ne prend d'une feature ni ses `components/`,
+   ni ses `hooks/`, ni son `lib/` ;
+3. l'accès aux données : la base (`drizzle-orm`, `pg` ; `drizzle-orm/zod` à part, qui tire un
+   schéma d'une table) dans les `*.data.ts` seulement, et
+   `lib/db/` côté web ; la connexion, passée en paramètre, s'importe partout ; côté app, le proxy de l'API (`@trpc/client`,
+   `@trpc/tanstack-react-query`, `@/lib/trpc`) dans les `*.queries.ts` et `lib/` seulement ; les
+   tests restent libres. Sans `type`, le projet l'écrit lui-même, par `no-restricted-imports` :
+   une exception y est un bloc qui **répète tous les motifs** (point suivant).
 
 - `eslint.mjs` s'appuie sur le plugin `import` des presets : son peer dit ESLint 9, ses verrous
   tirent sous ESLint 10 (vu sur eslint-plugin-import 2).

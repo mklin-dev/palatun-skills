@@ -56,9 +56,9 @@ export default [
 
 `conventions({ dir, src, type, allow })` : ses options, leur sens et leurs défauts, dans la
 JSDoc de `conventions()` (`eslint.mjs`) ; l'arbre de chaque `type` : `archi.md` § Squelette,
-`api.md` § Squelette. `dir` : jamais `process.cwd()` ; `type` : `../` refusé hors d'`api`, et en
-`api` les verrous de tRPC (`api.md` § Verrous, 1, 4 et 5) ; `allow` : chaque chemin avec sa raison
-dans l'`AGENTS.md` du projet.
+`api.md` § Squelette. `dir` : jamais `process.cwd()` ; `type` : le verrou 3, `../` refusé hors
+d'`api`, et en `api` les verrous de tRPC (`api.md` § Verrous, 1, 4 et 5) ; `allow` : chaque chemin
+avec sa raison dans l'`AGENTS.md` du projet.
 
 Le code serveur ajoute, après `conventions()`, `...comportement({ dir: import.meta.dirname })`
 (`dir` comme lui) ; ce qu'il tient : `api.md` § Verrous, 6. Ses règles typées veulent le typed
@@ -72,7 +72,7 @@ l'arbre, les noms et les directives, que le paquet apporte (`eslint-plugin-bound
 `eslint-plugin-check-file`, `@eslint-community/eslint-plugin-eslint-comments`) :
 - **les verrous 1 et 2** d'`archi.md` § Règle d'import et verrou ;
 - **avec `type`** : l'arbre (son message ne se règle pas : l'`AGENTS.md` du projet y renvoie,
-  § La doc du projet), les noms (`SKILL.md` § Nommage), `../` hors du dossier et, en `next`,
+  § La doc du projet), les noms (`SKILL.md` § Nommage), le verrou 3, `../` hors du dossier et, en `next`,
   Cloudflare hors d'un `lib/` (`web.md` § Cloudflare dans lib) ; `../` permis en `api` (sa raison :
   `structure()`, `eslint.mjs`) ;
 - **les promesses orphelines**, en `error` : du typed linting en cherry-pick, tout le preset
@@ -84,7 +84,8 @@ l'arbre, les noms et les directives, que le paquet apporte (`eslint-plugin-bound
 - **`react/no-unescaped-entities` coupée** : JSX échappe au runtime ; apostrophes en clair.
 
 Restent au projet, après `conventions()` :
-- **le verrou 3** (`no-restricted-imports`) : ses paquets interdits dépendent de sa stack ;
+- **le verrou 3 sans `type`** (`no-restricted-imports`) ; avec `type`, seulement ce que sa stack
+  y ajoute, comme les paquets de l'API pris en type seul (`api.md` § Verrous, 2) ;
 - **`@tanstack/query/prefer-query-options` en `error`** s'il a TanStack Query : deux `queryFn` sur
   une même clé corrompent le cache sans erreur TS ;
 - **un bouton est une primitive** : `react/forbid-elements` interdit l'élément natif (`button`,
@@ -247,5 +248,8 @@ reprise d'un dépôt qui l'a>
 - Jamais d'`ARCHITECTURE.md` ni d'arborescence fichier par fichier : le code la montre, elle
   dérive. Un `docs/<sujet>.md` se cite par son chemin, jamais en `@import` : Codex ne le connaît
   pas (`scripts/check-agents.sh`).
+- Un renvoi vers ce skill nomme son fichier et sa section (`conventions-ts, api.md § Verrous`) :
+  le même script refuse une section qui n'existe plus, dans les docs comme dans le code, hors
+  d'un dossier `migrations/`.
 - Vérifier un `AGENTS.md` : `/doctor prompt-audit` (consignes contradictoires, périmées, fichier
   cité absent).

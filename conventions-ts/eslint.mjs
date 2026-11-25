@@ -1,11 +1,11 @@
 // Le lint commun de conventions-ts : ce qui est identique dans chaque projet (setup.md § ESLint).
 // Publié dans le paquet @palatun/conventions-ts, jamais retouché dans un dépôt ; ce qui est propre
-// au projet (verrou 3, TanStack Query, réglage du typed linting, bouton) reste dans son
-// eslint.config, après conventions().
+// au projet (TanStack Query, réglage du typed linting, bouton, le verrou 3 d'un projet sans
+// `type`) reste dans son eslint.config, après conventions().
 //
 // `import`, `@typescript-eslint` et `react` viennent du preset (eslint-config-next ou
 // eslint-config-expo), résolveur des alias `@/` compris ; l'arbre et les noms, des deux plugins du
-// paquet, posés seulement avec `type`, et en `api` les verrous de tRPC (api.md § Verrous, 1, 4 et
+// paquet, posés seulement avec `type`, comme le verrou 3, et en `api` les verrous de tRPC (api.md § Verrous, 1, 4 et
 // 5). Le code serveur ajoute comportement() : le journal, Sentry,
 // les erreurs levées et les directives.
 import { existsSync, readdirSync } from 'node:fs';
@@ -34,6 +34,7 @@ function local() {
     meta: { name: 'conventions-ts' },
     rules: {
       'no-restricted-imports': natives.get('no-restricted-imports'),
+      acces: natives.get('no-restricted-imports'),
       console: natives.get('no-restricted-globals'),
       sentry: natives.get('no-restricted-imports'),
       catch: natives.get('no-restricted-syntax'),
@@ -52,6 +53,8 @@ const VERROU_API = 'conventions-ts, api.md § Verrous';
 const NOMMAGE = 'conventions-ts, SKILL.md § Nommage';
 const PARTAGE = ['components', 'hooks', 'stores', 'utils', 'lib'];
 const EXT = '{ts,tsx,js,jsx,mjs,cjs}';
+// Ce qu'une feature range sous elle (archi.md § Squelette).
+const DEDANS = '{components,hooks,lib}';
 
 const PARENT = {
   regex: '^\\.\\.(/|$)',
@@ -60,6 +63,34 @@ const PARENT = {
 const CLOUDFLARE = {
   regex: '^(cloudflare:|@opennextjs/cloudflare(/|$))',
   message: 'Cloudflare reste dans un lib/ (conventions-ts, web.md § Cloudflare dans lib)',
+};
+
+// Verrou 3 : ce qui parle à la base ou à l'API, et les seuls fichiers qui le peuvent (depuis
+// src/). Les paquets nus, et pour le proxy son alias ; la connexion (`@/lib/db`) se passe en
+// paramètre, donc s'importe partout.
+const base = (ou) => ({
+  // `drizzle-orm/zod` tire un schéma d'une table sans toucher la base (api.md § Squelette).
+  regex: '^(drizzle-orm(?!/zod(/|$))|pg)(/|$)',
+  message: `la base (drizzle-orm, pg) seulement dans un .data.ts${ou} (${VERROU}, 3)`,
+});
+const ACCES = {
+  next: {
+    patterns: [base(' ou lib/db/')],
+    permis: [`**/*.data.${EXT}`, 'lib/db/**'],
+  },
+  api: {
+    patterns: [base('')],
+    permis: [`**/*.data.${EXT}`],
+  },
+  expo: {
+    patterns: [
+      {
+        regex: '^(@trpc/client|@trpc/tanstack-react-query|@/lib/trpc)(/|$)',
+        message: `le proxy tRPC seulement dans un .queries.ts ou lib/ : un écran prend des queryOptions (${VERROU}, 3)`,
+      },
+    ],
+    permis: [`**/*.queries.${EXT}`, 'lib/**'],
+  },
 };
 
 // Les fichiers de convention de Next dans app/ (doc Next 16, § File-system conventions).
@@ -111,8 +142,9 @@ function arbre(type) {
  *   apps le reçoit de chacune : process.cwd() change selon qui lance ESLint (éditeur, hook).
  *   src : le dossier qui porte app/, features/ et le partagé ; `.` pour un projet resté à la
  *   racine (archi.md § Squelette).
- *   type : l'arbre du projet en liste blanche, ses noms en kebab-case, `../` refusé ; sans lui,
- *   les seuls verrous d'import.
+ *   type : l'arbre du projet en liste blanche, ses noms en kebab-case, `../` refusé, et le
+ *   verrou 3 (la base dans les `*.data.ts`, le proxy tRPC dans les `*.queries.ts` : ACCES) ; sans
+ *   lui, les seuls verrous 1 et 2.
  *   allow : les chemins propres au projet, depuis src/ (un dossier ou un motif), chacun avec sa
  *   raison dans la doc du projet.
  */
@@ -170,6 +202,13 @@ export function conventions({ dir, src = 'src', type, allow = [] } = {}) {
       presents(['features']),
       presents(['app']),
       `une feature n'importe jamais app/ (${VERROU})`,
+    ),
+    // Une route prend le point d'entrée d'une feature ou d'un de ses sous-domaines, jamais ce
+    // qu'elle range dedans. Des motifs : la règle exige alors que tout `from` en soit un.
+    ...sens(
+      presents(['app']),
+      presents(['features']).flatMap((f) => [`${f}/*/${DEDANS}/**`, `${f}/*/*/${DEDANS}/**`]),
+      `une route prend d'une feature son point d'entrée, pas ses components/, hooks/ ni lib/ (${VERROU})`,
     ),
     // api, verrou 5 : le chemin d'une requête ne dépend d'aucune feature.
     ...(type === 'api'
@@ -293,6 +332,19 @@ function structure({ dir, src, type, allow, fichiers }) {
           },
         ]
       : []),
+    {
+      // Sous son nom à lui : le bloc des imports (`../`, Cloudflare) ne l'efface pas, ni le
+      // verrou 3 qu'un projet garderait. Les tests simulent ou lisent la base.
+      name: 'conventions-ts/acces',
+      files: [fichiers],
+      ignores: [
+        ...ACCES[type].permis.map((p) => `${S}${p}`),
+        `**/*.test.${EXT}`,
+        '**/__tests__/**',
+      ],
+      plugins: { 'conventions-ts': local() },
+      rules: { 'conventions-ts/acces': ['error', { patterns: ACCES[type].patterns }] },
+    },
     ...(type === 'api' ? trpc({ S, fichiers }) : []),
     // Dans un lib/, Cloudflare est permis : le bloc répète le reste des motifs.
     ...(type === 'next'
