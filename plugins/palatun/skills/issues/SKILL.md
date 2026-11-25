@@ -26,6 +26,9 @@ Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mie
   Pourquoi : une relecture rate des défauts au-delà de 200 à 400 lignes (SmartBear), 1 000 est
   « usually too large », et un fichier supprimé compte pour une ligne
   (https://google.github.io/eng-practices/review/developer/small-cls.html).
+  Sauf un lot de docs seules (un tri, des renvois) : une PR, une doc par commit, quelle que soit
+  sa taille. Pourquoi : chaque PR repaie vérif, CI et merge (un tri de docs en 8 PR, 2026-11-24),
+  et une doc se relit commit par commit dans la session.
 - Titre en clair. Corps, dans cet ordre :
   - le besoin et ce qu'il faut, avec l'approche retenue et pourquoi si un choix l'a tranchée ;
   - **« Fini quand »** : des critères qu'on vérifie (une commande, un écran, un test), pas une

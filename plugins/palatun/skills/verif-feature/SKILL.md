@@ -19,7 +19,13 @@ plugin ; dans un `AGENTS.md`, `CLAUDE.md` ou `SKILL.md`, une règle qui autorise
 supprime : mot exact, permission, suppression) ; la CI ; plus la ligne `À risque` du projet.
 `risque.txt` (①) en relève les chemins connus, pas tous. Une autre règle, ou la prose d'un skill
 (`SKILL.md`, `references/`), est relue dans la session, quelle que soit la taille ; ses scripts
-suivent le tableau.
+suivent le tableau. Une règle d'un `AGENTS.md`, `CLAUDE.md` ou `SKILL.md` qui autorise, interdit
+ou supprime, seulement déplacée ou reformulée sans changer ce qu'elle permet, est relue dans la
+session aussi, chacune retrouvée à sa nouvelle place (`grep` avant et après), si elle reste dans un
+fichier chargé au moins aussi souvent ; sortie d'un fichier toujours chargé (vers une doc, une
+`references/`), elle cesse de s'appliquer : relecteur neuf. Pour le reste (arrêt de la suite de
+`merge`, rayon d'impact), elle reste un chemin à risque. Pourquoi : un tri de docs lançait
+relecteur et vérificateur à chaque PR (7 agents Opus, 52 min, pour 7 PR de docs, 2026-11-24).
 
 **Lecture seule** — la branche d'un autre, ou une demande seule de vérifier (« vérifie », « code
 review », « audit ») : le passage entier, mais rien ne s'écrit d'office. La base se merge sur une
@@ -65,7 +71,11 @@ pas : relecteur et vérificateur lisent ce diff.
 2. **Les commandes**, sortie dans `verif.out` : celles de la CI du projet (lint, types, tests,
    build ; jamais un déploiement) et celles de son `AGENTS.md` ; sinon, pour du TypeScript,
    `conventions-ts` § Definition of Done ; aucune : le dire au bilan. Un workflow touché :
-   actionlint puis zizmor. Pourquoi : la CI confirme, elle ne trouve pas.
+   actionlint puis zizmor. Pourquoi : la CI confirme, elle ne trouve pas. Un lot de docs seules
+   (que des `.md`, aucun lu comme réglage : définition d'agent, output style, commande) : les
+   commandes que l'`AGENTS.md` donne pour les docs, sinon les commandes entières. Pourquoi :
+   l'`AGENTS.md` sait quels tests lisent les docs, et la suite entière coûtait ~3,5 min par
+   passage (2026-11-24).
 3. **Le vrai comportement** : UI → un navigateur piloté (`playwright-cli`), preuve par les
    données (texte de la page, réseau, contenu envoyé), les attendus écrits rejoués, un rendu
    changé en avant/après (`references/avant-apres.md`), le motion relu (web : `review-animations` ;
