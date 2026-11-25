@@ -1,22 +1,12 @@
 # Architecture — web (Next.js App Router)
 
-Le propre au web. Le commun (squelette, rangement, imports, verrous) : `archi.md`.
+Le propre au web. Le commun (squelette, rangement, imports, verrous) : `archi.md` ; la base
+(connexion, migrations, schéma, auth, fichiers) : `references/base.md`.
 
-## Choisir le mode
-
-**La question qui tranche : un client non serveur (navigateur, mobile) touche-t-il la base ?**
-
-| | 🅐 Supabase direct | 🅑 Postgres / Neon + Drizzle |
-| --- | --- | --- |
-| Quand | oui, ou base partagée avec un mobile, ou realtime / storage / auth clés en main | non, l'app web est le seul client |
-| Autorisation | RLS en base + garde dans chaque endpoint | dans l'accès aux données + garde dans chaque endpoint |
-| Cache Next | aucun (le client lit les cookies) | possible sur les lectures sans dimension utilisateur |
-| Migrations | outillage Supabase | `drizzle-kit` |
-
-Même en 🅐, le front web lit et écrit par l'accès aux données et les Server Actions : l'accès
-direct ne sert qu'au mobile et au realtime. Les deux modes écrivent donc le même code. Le front
-consomme une API externe déjà existante : la fonction qui l'appelle prend la place de
-`<entité>.data.ts`, le reste ne bouge pas.
+**Le site Next est le seul client de sa base** (Postgres + Drizzle) : il lit et écrit par l'accès
+aux données et les Server Actions. Une app Expo lit ses données par l'API maison (`api.md`),
+jamais par la base. Le front consomme une API externe déjà existante : la fonction qui l'appelle
+prend la place de `<entité>.data.ts`, le reste ne bouge pas.
 
 ## Fichiers propres au web
 
@@ -64,8 +54,9 @@ Le lint commun (`type: 'next'`, `setup.md` § ESLint) refuse `cloudflare:*` et
 | Une partie attend sa donnée | `<Suspense>` au plus près, avec son squelette | — |
 | Rien à montrer sans donnée | `loading.tsx` : squelette de la page | — |
 
-- Pas de try/catch par écran : le tableau est le filet. Seule exception, le catch au bord d'une
-  action (§ Actions) : il avale l'erreur, donc l'envoie lui-même à Sentry.
+- Pas de try/catch par écran : le tableau est le filet. Deux exceptions, le catch d'une lecture
+  (§ Données) et celui au bord d'une action (§ Actions) : ils avalent l'erreur, donc l'envoient
+  eux-mêmes à Sentry.
 - `error.tsx` et `global-error.tsx` appellent `Sentry.captureException` dans un `useEffect` :
   une erreur attrapée par une boundary n'arrive pas seule à Sentry.
 - `<Suspense>` par défaut : la frontière naît dans le Server Component qui attend, et le nœud
@@ -87,24 +78,30 @@ import 'server-only'          // ← 1re ligne, toujours
 export type InvoicesRead = { invoices: Invoice[]; failed: boolean }
 
 export async function listInvoices(db: Db, actor: Actor): Promise<InvoicesRead> {
-  const { data, error } = await db.from('invoices').select(SAFE_COLUMNS).eq('org_id', actor.orgId)
-    .order('created_at', { ascending: false }).limit(100)  // liste : archi.md § Lectures
-  if (error) return { invoices: [], failed: true }        // panne ≠ vide
-  return { invoices: data.map(toInvoice), failed: false }
+  try {
+    const rows = await db.select(INVOICE_COLUMNS).from(invoices)
+      .where(eq(invoices.orgId, actor.orgId))
+      .orderBy(desc(invoices.createdAt), desc(invoices.id)).limit(100)  // archi.md § Lectures
+    return { invoices: rows.map(toInvoice), failed: false }
+  } catch (error) {
+    Sentry.captureException(error)             // avalée ici, donc envoyée ici
+    return { invoices: [], failed: true }      // panne ≠ vide
+  }
 }
 ```
 
 - Seuls `*.data.ts` et `lib/db/` parlent à la base (verrou 3 d'`archi.md`, avec `lib/auth/`
   pour le client de session) ; ils portent `import 'server-only'` et vérifient l'autorisation.
 - **L'org et l'identité arrivent par `actor`**, rendu par une garde de `lib/auth/` depuis la
-  session, jamais par `params` ni par le client : sinon, en 🅑 sans RLS, une URL ouvre un IDOR.
+  session, jamais par `params` ni par le client : sinon une URL ouvre un IDOR.
 - **La connexion arrive en 1er paramètre**, jamais fabriquée sur place : c'est ce qui le rend
   testable sans mock de module.
 - **Une lecture en panne** (`archi.md` § Lectures), côté consommateur : Server Component →
   `throw` avant tout `notFound()` ; endpoint → message générique.
 - **Le DTO se construit par un littéral annoté champ par champ, jamais par spread** : le
   contrôle des propriétés excédentaires de TS ne s'exerce que sur un littéral direct.
-- La liste des colonnes lues est une constante nommée, à un seul endroit. Jamais `select('*')`.
+- La liste des colonnes lues est une constante nommée, à un seul endroit. Jamais `db.select()`
+  nu, qui lit toutes les colonnes.
 
 ### Rafraîchir sans écriture
 
@@ -169,28 +166,23 @@ export async function updateInvoice(input: unknown) {
 - Les paliers (référence, standard, volatile, écriture) : `archi.md` § Fraîcheur.
 - **Page statique** pour un contenu qui ne change qu'au déploiement (vitrine, page de marque) :
   `generateStaticParams` sur la route dynamique, rendu au build, servi par le CDN.
-- **Rien n'est caché par défaut** : `cacheComponents` dans la config (avec `partialPrefetching:
-  true`, sinon un warning), puis `'use cache'` dans chaque scope, avec un `cacheLife` explicite ;
-  jamais de secret en clé ni en tag.
-- `'use cache'` remplace `unstable_cache`, sauf pour une donnée qui doit survivre à un
-  déploiement.
-- ⚠️ Un scope caché ne peut pas lire cookies, headers ni searchParams, même via un helper appelé
-  plus bas, et l'erreur peut passer le build.
+- **Rien n'est caché par défaut.** `'use cache'` (option `cacheComponents`, que `create-next-app`
+  active) se lit dans la doc de la version installée avant d'en dépendre ; vinext ne le gère
+  qu'en partie : `npx vinext check`, sinon couper l'option. Jamais de secret en clé ni en tag ;
+  un scope caché ne lit ni cookies, ni headers, ni searchParams, même par un helper, et l'erreur
+  peut passer le build.
 - Ce qui doit être frais à chaque requête : `<Suspense>` + un composant non caché, jamais un
   cache à durée courte.
-- ⚠️ vinext ne gère `'use cache'` qu'en partie, alors que `create-next-app` active
-  `cacheComponents` : `npx vinext check` avant d'en dépendre, sinon couper l'option. En prod,
-  brancher son adaptateur KV et/ou CDN (cache en mémoire par défaut).
-- 🅐 **aucun cache Next** : une lecture filtrée par RLS mise en cache servirait les lignes d'un
-  utilisateur à un autre. À la place : `cache()` de React dans un même rendu, + le streaming.
-- 🅑 cache possible sur les seules lectures sans dimension utilisateur.
+- **Le cache Next seulement sur une lecture sans dimension utilisateur** : une lecture par
+  utilisateur ou par org mise en cache servirait les lignes de l'un à un autre. Pour elle :
+  `cache()` de React dans un même rendu, + le streaming.
 
 ## Auth et sécurité
 
 ```text
 proxy.ts               redirection optimiste par cookie  → confort, jamais une sécurité
 action / handler       session + droits revérifiés       → la frontière
-RLS (🅐) / données (🅑)  dernier filet                    → même si le handler se trompe
+accès aux données      dernier filet, filtre par actor   → même si le handler se trompe
 ```
 
 - Le proxy n'est pas un gate : les Server Functions sont des POST sur la route qui les utilise,
@@ -207,59 +199,6 @@ RLS (🅐) / données (🅑)  dernier filet                    → même si le h
 - **Plusieurs instances** (VPS, répliques) : la clé de chiffrement des Server Actions a la même
   valeur partout, sinon « Failed to find Server Action » aléatoire, en prod seulement. Déclarer
   aussi les origines autorisées derrière un reverse-proxy.
-
-## 🅐 Supabase direct
-
-- Cookies : `getAll()` / `setAll()` seulement. ⚠️ `setAll` reçoit un 2e argument lors d'un
-  refresh, qui doit être appliqué à la réponse : l'oublier fait fuiter une session via le CDN.
-- **`getClaims()` établit l'identité, jamais `getSession()`** côté serveur ; l'envelopper dans
-  `cache()` de React.
-- Deux clients serveur, jamais interchangeables : celui des Server Components et Actions écrit
-  dans `next/headers` (try/catch vide : écrire pendant le rendu jette), celui du proxy écrit dans
-  la réponse. Le second ne se construit pas depuis le premier. **Rien entre la création du client
-  et la lecture des claims**, sinon des déconnexions aléatoires.
-- Le rôle applicatif vient d'une table, jamais des métadonnées utilisateur (que l'utilisateur peut
-  écrire). L'utilisateur n'écrit jamais sa propre ligne de rôle (sinon il s'élève) ; la fonction,
-  le schéma et les GRANT : skill `supabase`, s'il est installé.
-- « RLS activée » ≠ « bornée » : sous une policy `using (is_admin())` sans clause de ligne, le
-  `.eq()` du code est la seule borne, et un test y est obligatoire. RLS et GRANT sont deux
-  contrôles distincts.
-- « Côté serveur, donc client privilégié puis filtre en JS » contourne la RLS : le client
-  privilégié reste banni (`archi.md`, verrou 3).
-- Clés publishable / secret sur les nouveaux projets, signature asymétrique du JWT.
-- Storage : le chemin est le bornage, dérivé des claims, jamais du formulaire ; bucket privé + URL
-  signée ; le type se lit dans les octets, jamais dans le type déclaré (un SVG annoncé PNG est un
-  XSS stocké) ; la colonne stocke le chemin.
-
-## 🅑 Postgres / Neon + Drizzle
-
-- Connexion selon l'hébergement :
-  - **Workers** : Hyperdrive + `pg`, un client par requête (workerd réserve l'I/O au contexte
-    d'une requête) ; Hyperdrive reçoit la chaîne directe de
-    Neon (pooling décoché), rôle dédié, binding par `import { env } from 'cloudflare:workers'`.
-    ⚠️ Hyperdrive cache les SELECT 60 s : `wrangler hyperdrive update <id> --caching-disabled`,
-    sauf choix écrit. Ni Postgres.js avec Drizzle, ni le driver serverless de Neon.
-  - **VPS (Node)** : un Pool TCP au niveau module (sur l'URL poolée seulement si la base reste
-    sur Neon), `max` explicite, `pool.on('error')` obligatoire
-    (sinon crash du process), garde `globalThis` pour le hot-reload. Base sur le VPS plutôt que
-    Neon : chaque requête paierait l'aller-retour (skill `infra`).
-- `drizzle-kit` et les scripts prennent l'URL directe ; `.env` chargé explicitement hors Next.
-- Auth : Better Auth en lib, adapter Drizzle, tables dans la base du projet (un `pg_dump`
-  l'emporte). **Pas l'auth gérée par Neon**, même GA en UE : ni plugins, ni
-  hooks, ni options, et elle lie l'app à Neon ; ne pas la re-proposer. Sur Workers, le hachage de
-  Better Auth peut dépasser les 10 ms de CPU de l'offre gratuite (déduction) → Workers Paid.
-- Fichiers : R2, bucket en juridiction `eu` (choisie à la création) ; mêmes règles que le storage 🅐.
-- Migrations : `push` en local seulement ; partagé → `generate` + `migrate`, SQL commité, script
-  `db:migrate` réellement appelé.
-- Schéma : PK `uuid` générée en base, timestamps avec timezone, `onDelete: cascade`, colonne de
-  tenant sur chaque table métier, unicité préfixée par le tenant, FK indexées. Une contrainte
-  unique sur une colonne nullable n'empêche rien (deux NULL passent).
-- Idempotence : la contrainte unique en base garantit le non-doublon ;
-  `insert().onConflictDoNothing({ target }).returning()` puis relire si vide. Dans une
-  transaction, seulement l'objet de transaction.
-- RLS pas par réflexe : sans client non serveur, elle duplique la logique d'accès. Data API
-  inutilisée → la couper.
-- Derrière un pooler en mode transaction, pas de prepared statements (panne en prod seulement).
 
 ## UI et styles
 

@@ -5,10 +5,10 @@ rangement, imports, verrous) : `archi.md` ; le client mobile : `mobile.md` § De
 API ; le socle (auth, serveur, journal et Sentry, jobs, fichiers), lu à la création et pour
 l'infra : `references/api-socle.md`.
 
-**Quand** : le backend d'une app mobile reste Supabase direct (`mobile.md`) ; une API maison
-quand Supabase est exclu, hébergeur européen exigé ou sous-traitant américain refusé. Elle tourne
-alors sur le VPS, pas sur Workers (skill `infra` : `docs/choisir-hebergement.md`,
-`docs/vps/stack.md` § Clients publics).
+**Quand** : dès qu'un client qui n'est pas un serveur lit les données, donc pour toute app
+mobile ; un site Next seul client de sa base la lit sans API (`web.md`). Elle tourne sur le VPS,
+pas sur Workers (skill `infra` : `docs/choisir-hebergement.md`, `docs/vps/stack.md` § Clients
+publics).
 
 ## Ce que contient une bonne API
 
@@ -43,8 +43,8 @@ là ; les autres valent pour toute API.
 | --- | --- | --- |
 | Serveur HTTP | Hono sur Node (`@hono/node-server`) | porte l'auth et tRPC ; le même code tourne sur Workers |
 | Contrat | tRPC v11 | le contrat typé le plus utilisé ; types de bout en bout, sans génération |
-| Base | Drizzle + `pg` | `web.md` § 🅑 (connexion, migrations, schéma) |
-| Auth | Better Auth en lib | `web.md` § 🅑 ; plugin Expo officiel |
+| Base | Drizzle + `pg` | `references/base.md` (connexion, migrations, schéma) |
+| Auth | Better Auth en lib | `references/base.md` ; plugin Expo officiel |
 | Validation | Zod v4 | `SKILL.md` § Zod |
 | Jobs, si l'app en a | pg-boss | file et cron dans la base de l'API, sans Redis (socle § Jobs) |
 
@@ -170,7 +170,7 @@ export const postsRouter = {
 ## Accès aux données
 
 - `<entité>.data.ts` : la connexion en 1er paramètre, `actor` en 2e, `tx` seul dans une
-  transaction (`web.md` § Données, § 🅑).
+  transaction (`web.md` § Données, `references/base.md`).
 - **Chaque requête filtre par son propriétaire** (`actor.userId` ; `actor.orgId` avec des
   organisations), **`byId` compris** : lire l'objet d'un autre par son ID est le risque n° 1 des
   API (OWASP API1:2023). Hors de sa portée, l'objet rend `NOT_FOUND`, jamais `FORBIDDEN`, qui
@@ -189,7 +189,7 @@ export const postsRouter = {
   d'une équipe, les lignes d'un objet) rend tout, triée, sans curseur.
 - **Un `create` porte l'`id` généré par l'app** (`z.uuid()`) : rejoué après une coupure
   (`mobile.md` § Réseau et hors ligne), il retombe sur la même ligne (`onConflictDoNothing`, puis
-  relecture filtrée par propriétaire : `web.md` § 🅑).
+  relecture filtrée par propriétaire : `references/base.md`).
 - **Avec des organisations, une action sensible laisse une ligne d'audit** (membres, rôles,
   invitations, suppressions, exports) : qui, quoi, sur quel objet, quand, dans quelle org, en ID
   seulement ; écrite par le `.data.ts`, dans la transaction de l'action. La connexion, que
@@ -204,7 +204,7 @@ export const postsRouter = {
   l'erreur `pg`), `P0001` → `UNPROCESSABLE_CONTENT` avec le message de l'exception, `23505` →
   `CONFLICT`, et relance le reste. Sinon tRPC en fait un 500 : bug pour l'app, Sentry (vu sur
   drizzle-orm 0.45 et 1.0).
-- RLS : pas par réflexe (`web.md` § 🅑). Une base qui la garde (reprise de Supabase) : l'API se
+- RLS : pas par réflexe (`references/base.md`). Une base qui la garde (reprise de Supabase) : l'API se
   connecte sans superuser ni `BYPASSRLS`, qui la contournent toujours, et sans posséder les
   tables (sinon `FORCE ROW LEVEL SECURITY`). Dans la transaction de la requête :
   `set local role authenticated` et `set_config('request.jwt.claims', …, true)`, que les policies

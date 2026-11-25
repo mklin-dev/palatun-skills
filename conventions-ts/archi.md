@@ -16,10 +16,9 @@ La doc Expo Router se cherche par SDK, jamais par version de package.
 2. `features/<feature>/` + son point d'entrée ; « ça disparaîtrait avec la feature ? » décide
    de tout le reste (§ Où je mets ce fichier).
 3. La route dans `app/` reste mince : elle importe le point d'entrée (§ Règle d'import).
-4. Les données : le gabarit de la plateforme (`web.md` § Données, après § Choisir le mode ;
-   `mobile.md` § Données). Pas de try/catch par écran : un filet global trie l'attendu (message
-   à l'utilisateur) et l'imprévu (Sentry) : `web.md` § Erreurs et chargement, `mobile.md`
-   § Réseau et hors ligne.
+4. Les données : le gabarit de la plateforme (`web.md` § Données ; `mobile.md` § Données). Pas
+   de try/catch par écran : un filet global trie l'attendu (message à l'utilisateur) et
+   l'imprévu (Sentry) : `web.md` § Erreurs et chargement, `mobile.md` § Réseau et hors ligne.
 5. Le lint passe (§ Règle d'import et verrou), puis la Definition of Done (`SKILL.md`).
 
 ## Squelette
@@ -34,8 +33,8 @@ src/
 ├── hooks/        hooks partagés par ≥ 2 features
 ├── stores/       état client global (thème, préférences), jamais de données serveur
 └── lib/          helpers purs partagés, un fichier par sujet ; enveloppes d'une lib ou
-                  d'une ressource : client Supabase ou base, db/, auth/, env,
-                  query-client, storage, erreurs, types générés
+                  d'une ressource : db/ (web), le proxy tRPC (mobile), auth/, env,
+                  query-client, storage, erreurs
 ```
 
 - Le lint tient cet arbre en liste blanche, l'intérieur d'une feature compris, quand le projet
@@ -66,7 +65,7 @@ Ce code disparaîtrait-il avec la feature ?
 | Rôle | Web | Mobile |
 | --- | --- | --- |
 | Point d'entrée de la route | `<Feature>Template.tsx` | `<Feature>Screen.tsx` |
-| Accès aux données | `<entité>.data.ts` | `<entité>.api.ts` |
+| Accès aux données | `<entité>.data.ts` | aucun fichier : le proxy tRPC |
 | Fonctions serveur / requêtes | `<entité>.actions.ts` | `<entité>.queries.ts` |
 | Schéma Zod partagé | `<entité>.schema.ts` | `<entité>.schema.ts` |
 
@@ -89,11 +88,10 @@ fois pour tous les projets, dans `eslint.mjs` à côté de ce fichier (`setup.md
 
 1. les features isolées : un dossier créé dans `src/features/` entre seul dans le verrou ;
 2. le sens unique de la liste ci-dessus ;
-3. dans le projet, `no-restricted-imports` : le SDK de base et l'ORM (paquets nus, `@supabase/supabase-js`,
-   `pg`, `drizzle-orm`, **et** alias) bannis partout, sauf dans les fichiers d'accès aux
-   données et `lib/` (liste exacte : `web.md`, `mobile.md`). Le client privilégié (hors RLS)
-   vit dans un seul fichier de `lib/`, banni partout, accès aux données compris, sauf fichiers
-   nommés. Une exception = un bloc qui **répète tous les motifs** (point suivant).
+3. dans le projet, `no-restricted-imports` : l'ORM et le client de l'API (paquets nus, `pg`,
+   `drizzle-orm`, **et** alias, `@/lib/db`, `@/lib/trpc`) bannis partout, sauf dans les fichiers
+   d'accès aux données et `lib/` (liste exacte : `web.md` § Données, `mobile.md` § Règles d'or,
+   `api.md` § Verrous). Une exception = un bloc qui **répète tous les motifs** (point suivant).
 
 - `eslint.mjs` s'appuie sur le plugin `import` des presets : son peer dit ESLint 9, ses verrous
   tirent sous ESLint 10 (vu sur eslint-plugin-import 2).
@@ -109,7 +107,7 @@ fois pour tous les projets, dans `eslint.mjs` à côté de ce fichier (`setup.md
 - Les couches sans lecteur : `repositories/`, `use-cases/`, `gateways/`, `adapters/`, `ports/`,
   un `services/` ou un `validations/` global sous `lib/`.
 - Un composant métier dans `components/` ; une redirection (proxy, garde de nav) prise pour une
-  sécurité : la RLS et le serveur gardent leurs contrôles.
+  sécurité : le serveur garde ses contrôles.
 - Un monorepo avant qu'une deuxième app partage vraiment du code ; ensuite `apps/` + `packages/`.
 
 ## Données, partout pareil
@@ -126,23 +124,21 @@ façon :
 | Volatile | état, tableau de bord | rendu frais, `router.refresh()` | 30 à 60 s |
 | Écriture qui en dépend | stock avant commande | rendu frais, relu dans l'action | `0`, `refetchOnMount: 'always'` |
 
-- ¹ Web : le cache Next seulement pour une lecture sans dimension utilisateur (🅑) ; une lecture par
-  utilisateur ou par org, et tout en 🅐, est rendue fraîche (`web.md` § Cache). Rafraîchir sans
+- ¹ Web : ce que le cache Next a le droit de garder : `web.md` § Cache. Rafraîchir sans
   écriture : `web.md` § Données.
 
 ### Lectures
 
-- **Types générés** (Supabase) pour les lectures, régénérés après chaque migration ; Zod pour les entrées
-  seules.
-- **Liste** : `order()` sur une clé stable + `limit()` explicite, sinon ordre instable et
+- **Types inférés, sans génération** : du schéma Drizzle côté serveur, du routeur tRPC côté
+  app ; Zod pour les entrées seules.
+- **Liste** : `orderBy()` sur une clé stable + `limit()` explicite, sinon ordre instable et
   troncature silencieuse.
 - **Une panne n'est pas un vide**, à la forme de la plateforme : le web rend un objet avec un
   drapeau `failed` (le Server Component décide au rendu, sans relance côté client) ; le mobile
   lève l'erreur (TanStack relance, garde la donnée en cache et la classe).
-- **Ce qui va jusqu'à l'écran** : le web construit un objet champ par champ (la donnée passe la
-  frontière serveur → navigateur : une colonne lue en trop part dans la page) ; le mobile garde
-  la ligne brute (déjà sur le client, filtrée par la RLS, typée par les types générés : un mapper
-  ne protégerait rien) ; derrière une API maison, le mobile rejoint le web (`api.md` § Accès aux
+- **Ce qui va jusqu'à l'écran** : le serveur construit un objet champ par champ (la donnée passe
+  la frontière serveur → navigateur ou app : une colonne lue en trop part dans la page ou la
+  réponse) ; l'app mobile garde l'objet que l'API rend, sans mapper (`api.md` § Accès aux
   données).
 
 ### TanStack Query

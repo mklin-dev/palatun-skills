@@ -32,7 +32,6 @@ tranche contre l'usage cite sa source ici ; la vérifier avant de rouvrir la rè
 | Accès aux données `server-only` dans la feature, action mince qui délègue | `web.md` § Données, § Actions | https://nextjs.org/docs/app/guides/data-security |
 | `proxy.ts` remplace `middleware.ts` | `web.md` § Fichiers propres au web | https://nextjs.org/docs/app/api-reference/file-conventions/proxy |
 | `use()` : promesse d'un Server Component ou mise en cache | `web.md` § Rendu | https://react.dev/reference/react/use |
-| `partialPrefetching` avec `cacheComponents` ; `unstable_cache` pour survivre au déploiement | `web.md` § Cache | https://nextjs.org/docs/app/api-reference/config/next-config-js/cacheComponents · https://nextjs.org/docs/app/api-reference/directives/use-cache · https://nextjs.org/docs/app/api-reference/functions/unstable_cache |
 | Refus attendu en valeur de retour, `<Suspense>` près de la donnée avant `loading.tsx` | `web.md` § Erreurs et chargement | https://nextjs.org/docs/app/getting-started/error-handling · https://nextjs.org/docs/app/guides/streaming |
 | `captureException` dans `error.tsx` et `global-error.tsx`, `onRequestError` côté serveur | `web.md` § Erreurs et chargement | https://docs.sentry.io/platforms/javascript/guides/nextjs/capturing-errors · https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation |
 | `enabled` et une garde plutôt que `skipToken` : `refetch()` ne relance pas une query sautée par `skipToken` | `mobile.md` § Données | `@tanstack/query-core@5.104.5` `build/modern/utils.js:302` · https://tanstack.com/query/latest/docs/framework/react/guides/disabling-queries |
@@ -55,7 +54,8 @@ tranche contre l'usage cite sa source ici ; la vérifier avant de rouvrir la rè
 | Codes d'erreur, message d'une `TRPCError` montré tel quel, `errorFormatter` | `api.md` § Erreurs | https://trpc.io/docs/server/error-handling |
 | `trpcMiddleware` capture tout `!ok` et joint l'input selon `dataCollection.httpBodies` ; l'`onError` du handler tRPC | `references/api-socle.md` § Observabilité | tarball `@sentry/core@11.12.0` `build/esm/trpc.js` · https://trpc.io/docs/server/error-handling · tarball `@hono/trpc-server@0.4.2` `dist/index.js` (`...rest` transmis) |
 | Lecture d'un objet d'une autre org par son ID : API1:2023 | `api.md` § Accès aux données | https://api-security.owasp.org/editions/2023/en/0xa1-broken-object-level-authorization/ |
-| `queryOptions`, `pathFilter`, `skipToken` dans l'exemple tRPC | `mobile.md` § Derrière notre API | https://trpc.io/docs/client/tanstack-react-query/usage |
+| `queryOptions`, `mutationOptions`, `pathFilter`, `skipToken` dans l'exemple tRPC | `mobile.md` § Données | https://trpc.io/docs/client/tanstack-react-query/usage |
+| `@trpc/tanstack-react-query` pour un projet neuf ; `@trpc/react-query` déprécié, retiré à la prochaine majeure | `mobile.md` § Données | https://trpc.io/docs/client/tanstack-react-query/setup · https://trpc.io/docs/client/react |
 | Better Auth sur Hono : `/api/auth/*`, CORS explicite, `trustedOrigins` | `references/api-socle.md` § Auth | https://better-auth.com/docs/integrations/hono |
 | Vieilles apps installées : changements additifs (rien d'officiel côté tRPC) | `api.md` § Versions installées de l'app | https://dev.to/hirodeath/sharing-trpc-v11-types-between-nextjs-and-expo-a-real-world-indie-web-ios-setup-3067 |
 | `allowTypeImports` pour un import de type seulement | `api.md` § Verrous | https://typescript-eslint.io/rules/no-restricted-imports/ |
@@ -88,7 +88,7 @@ tranche contre l'usage cite sa source ici ; la vérifier avant de rouvrir la rè
 | Une query function doit lever pour être en erreur | `api.md` § Accès aux données | https://tanstack.com/query/v5/docs/framework/react/guides/query-functions |
 | `clear()` vide les caches de requêtes et de mutations | `mobile.md` § Derrière notre API | https://tanstack.com/query/v5/docs/reference/QueryClient |
 | tRPC ne relance que le 500 et l'erreur sans réponse tRPC | `mobile.md` § Derrière notre API | https://trpc.io/docs/client/links/retryLink |
-| `useSession`, client Expo `createAuthClient` de `better-auth/react`, `inferAdditionalFields` | `references/api-socle.md` § Auth, `mobile.md` § Derrière notre API | https://better-auth.com/docs/integrations/expo · https://better-auth.com/docs/concepts/typescript |
+| `useSession`, client Expo `createAuthClient` de `better-auth/react`, `inferAdditionalFields` | `references/api-socle.md` § Auth, `mobile.md` § Auth et session | https://better-auth.com/docs/integrations/expo · https://better-auth.com/docs/concepts/typescript |
 | ID de Better Auth en texte par défaut, `generateId: 'uuid'` | `references/api-socle.md` § Auth | https://better-auth.com/docs/concepts/database |
 | Org active posée à la création de session | `references/api-socle.md` § Auth | https://better-auth.com/docs/plugins/organization |
 | Safari (ITP) et cookies d'un autre domaine | `references/api-socle.md` § Auth | https://better-auth.com/docs/concepts/cookies |

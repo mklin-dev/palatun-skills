@@ -3,16 +3,16 @@
 Le propre au mobile (iOS, Android et web dans une même app). Le commun (squelette, rangement,
 imports, verrous) : `archi.md`.
 
-**Backend par défaut : Supabase direct + RLS, sans API maison.** Une API externe ne change que
-`<entité>.api.ts` (un `fetch` au lieu du SDK) ; notre API maison (Hono + tRPC) change davantage
-(clés, session, erreurs) : § Derrière notre API, et `api.md`.
+**Backend : notre API (Hono + tRPC, `api.md`).** L'app la lit par le proxy tRPC (§ Derrière
+notre API) ; une API externe déjà existante ne change que le contenu de `<entité>.queries.ts`
+(§ Données).
 
 ## Règles d'or
 
 1. **Route = réexport nu** : `app/posts/[id].tsx` exporte
    `features/posts/PostDetailScreen.tsx`. Un écran par route, zéro hook, zéro requête.
 2. **L'écran ne touche jamais le client** : il consomme des `queryOptions` ou un hook. Le verrou 3
-   permet le SDK dans `*.api.ts`, `lib/supabase.ts` et `lib/auth/` seulement.
+   permet le proxy (`@/lib/trpc`) dans `*.queries.ts` et `lib/` seulement (`api.md` § Verrous, 2).
 3. **Largeur mesurée, jamais `Platform.OS`**, pour décider d'un layout.
 4. **Natif d'abord** : vérifier `@expo/ui` avant d'installer une lib UI.
 5. **New Architecture obligatoire** : une dépendance native qui ne la supporte pas est morte.
@@ -44,58 +44,41 @@ imports, verrous) : `archi.md`.
 
 ## Données
 
-Deux fichiers par entité, dans la feature :
+Un fichier par entité, dans la feature : ses `queryOptions`, tirées du proxy tRPC (`lib/trpc.ts`,
+§ Derrière notre API). C'est l'intégration que tRPC recommande pour un projet neuf
+(`@trpc/tanstack-react-query`) : le proxy rend les `queryOptions`, les clés et les types.
 
 ```ts
-// features/posts/posts.api.ts — fonctions Supabase pures, Row brute, testables hors React
-export async function listPosts(orgId: string) {
-  const { data, error } = await supabase
-    .from('posts').select(POST_COLUMNS)
-    .eq('organization_id', orgId)        // la RLS isole le tenant, pas l'org active
-    .order('created_at', { ascending: false }).limit(100)
-  if (error) throw error
-  return data
-}
-
-// features/posts/posts.queries.ts — clés + queryOptions + mutationOptions
-export const postsKeys = {
-  all: ['posts'] as const,                   // sans orgId : l'invalidation par préfixe balaie tout
-  list: (orgId: string) => [...postsKeys.all, orgId] as const,
-}
+// features/posts/posts.queries.ts — les queryOptions et mutationOptions de l'entité
 export const postsQueries = {
-  list: (orgId: string | undefined) => queryOptions({
-    queryKey: postsKeys.list(orgId ?? 'none'),
-    // `enabled` et une garde, jamais `orgId!` ; pas `skipToken` : tirer pour rafraîchir (refetch)
-    // ne relance pas une query sautée par lui (vu sur @tanstack/query-core 5)
-    queryFn: () => (orgId ? listPosts(orgId) : Promise.resolve([])),
-    enabled: !!orgId,
-    staleTime: 5 * 60_000,
-  }),
+  list: () => trpc.posts.list.queryOptions(undefined, { staleTime: 5 * 60_000 }),
+  // input inconnu au rendu : `enabled` et une garde, jamais `id!` ; pas `skipToken`, que montre
+  // la doc tRPC : tirer pour rafraîchir (refetch) ne relance pas une query sautée par lui
+  // (vu sur @tanstack/query-core 5)
+  byId: (id: string | undefined) =>
+    trpc.posts.byId.queryOptions({ id: id ?? '' }, { enabled: !!id, staleTime: 5 * 60_000 }),
 }
-export const createPostMutation = () => mutationOptions({
-  mutationFn: createPost,                    // de posts.api.ts
-  onSettled: () => queryClient.invalidateQueries({ queryKey: postsKeys.all }),
+export const createPostMutation = () => trpc.posts.create.mutationOptions({
+  onSettled: () => queryClient.invalidateQueries(trpc.posts.pathFilter()),
 })
 ```
 
-- **`queryOptions` est l'abstraction** : l'écran fait `useQuery(postsQueries.list(orgId))`. Un
-  hook (`use-posts.ts`) seulement s'il combine plusieurs choses, comme l'organisation active et
-  la requête.
+- **`queryOptions` est l'abstraction** : l'écran fait `useQuery(postsQueries.list())`. Un
+  hook (`use-posts.ts`) seulement s'il combine plusieurs choses, comme deux requêtes, ou une
+  requête et un état de l'écran.
 - Paliers de `staleTime` : `archi.md` § Fraîcheur ; polling : `references/react-details.md` ;
   règles de TanStack : `SKILL.md` § TanStack Query.
-- Clés : `all` sans dimension, dérivés qui spreadent `...keys.all` ; les mutations invalident la
-  racine. Invalider une autre feature = importer sa factory de clés :
-  seule exception à l'isolation, permanente, un `eslint-disable-next-line` motivé sur l'import. Plusieurs services d'un domaine qui s'invalident entre eux : un module de clés sans
-  import de valeur, sinon un cycle produit des `undefined` à l'init, en silence.
-- Écriture : `.select().maybeSingle()` puis `if (!row) throw new BusinessRuleError(…)`. **Zéro
-  ligne = refus RLS, jamais un faux succès.** `.single()` pour l'insert seul ; `.maxAffected(n)`
-  borne par le haut sans prouver qu'une ligne a bougé.
+- **Les clés viennent de tRPC**, jamais écrites à la main ; une mutation invalide la racine de sa
+  feature (`trpc.posts.pathFilter()`). Invalider une autre feature passe par le même proxy, sans
+  import entre features.
 - Liste, panne, ce qui va jusqu'à l'écran : `archi.md` § Lectures.
-- On ne fait pas d'envelope `{ success, data }`.
-- Fichiers : bucket privé, chemin `{org}/{domaine}/{id}/{fichier}` avec la RLS sur le 1er
-  segment ; la colonne stocke le chemin, re-signé à la lecture ; la signature ne throw pas
-  (icône de repli) et a une version batch. Clé de cache image stable : le chemin + `#<updated_at>`.
-  Upload en `ArrayBuffer`, jamais en `Blob` (RN le sérialise en 0 octet).
+- On ne fait pas : de fichier d'appels à côté (`<entité>.api.ts` : le proxy en tient lieu),
+  d'envelope `{ success, data }`.
+- Une API externe déjà existante : ses `queryOptions` s'écrivent à la main dans le même
+  `<entité>.queries.ts`, autour d'un `fetch`, clés en factory (`SKILL.md` § TanStack Query).
+- Fichiers (`references/api-socle.md` § Fichiers) : envoi en `ArrayBuffer`, jamais en `Blob` (RN
+  le sérialise en 0 octet) ; une URL signée qui manque rend une icône de repli, sans lever ; clé
+  de cache image stable : la clé du fichier + `#<updated_at>`.
 
 ### Réseau et hors ligne
 
@@ -106,10 +89,10 @@ queryFn ──► erreur ──► classifieur isolé ──┬─► retry ?   
                                            └─► repli hors ligne ?
 ```
 
-- **Classifieur réseau isolé, sans import** (chargé avant Sentry), source unique des 4 branches :
-  le client PostgREST ne rejette pas un fetch échoué, il le mappe en erreur à `code` vide.
-- Ordre de tri : métier > réseau > auth > erreur base mappée > le reste (= bug : toast +
-  capture). `BusinessRuleError` et `P0001` sont des refus métier : toast tel quel, jamais Sentry.
+- **Classifieur réseau isolé, sans import** (chargé avant Sentry), source unique des 4 branches ;
+  ce qu'il lit d'une erreur de l'API : § Derrière notre API.
+- Ordre de tri : réseau > auth > refus (4xx) > le reste (= bug : toast + capture). Un refus se
+  toaste tel quel, jamais Sentry.
 - Canal unique : `MutationCache.onError` toaste, sauf `meta: { errorHandledLocally: true }` ;
   `QueryCache.onError` : `SKILL.md` § TanStack Query. Hors ligne, les relances sont en pause : pas de rafale.
 - `networkMode: 'offlineFirst'` sur les queries, `'online'` sur les mutations (pause et rejeu à
@@ -124,29 +107,23 @@ queryFn ──► erreur ──► classifieur isolé ──┬─► retry ?   
   d'app : un cran explicite, optionnel.
 - Écran non focalisé : prop `subscribed` de `useQuery` couplée à `useIsFocused()`, jamais
   `enabled` (qui vide l'état).
-- Erreur d'Edge Function normalisée : message tiré du body, 4xx → `BusinessRuleError`, 5xx →
-  `Error`.
 
 ## Auth et session
 
-- `getClaims()` au boot + `onAuthStateChange` ; sur erreur transitoire, **on ne déconnecte pas** :
-  on garde l'état courant et on lève le loading.
-- `startAutoRefresh` / `stopAutoRefresh` sur `AppState` en natif, enregistrés une seule fois.
-- La session vit dans un Context React, pas dans un store.
+- La session se lit par `authClient.useSession()`, le hook de Better Auth : ni Context maison, ni
+  store. Sur une erreur transitoire (réseau), **on ne déconnecte pas** : on garde l'état courant ;
+  seul un 401 déconnecte (§ Derrière notre API).
 - Un champ d'identité chargeable a un statut tri-état (`loading | ready | error`) : `null` seul
   est ambigu et donne un spinner infini ou un écran blanc.
-- **À la déconnexion** : `queryClient.clear()` et purge des clés de storage du namespace de l'app,
-  sinon une query key sans userId fuit au compte suivant.
-- Storage de session : l'adapter officiel, pas de chiffrement maison (3 dépendances et du crypto
-  pour une session courte, révocable côté serveur). Chiffrer est une exception à justifier ; le
-  ciphertext porte alors un préfixe de version (`v1:`) ; une valeur sans préfixe se lit telle
-  quelle.
-- Clé embarquée : la clé publishable, jamais un secret.
-- 🩺 « La policy RLS est bonne mais l'app ne voit rien » → vérifier les GRANT d'abord.
+- **À la déconnexion** : `authClient.signOut()` d'abord (sinon un écran monté relance sa query),
+  puis `queryClient.clear()` et la purge du persister et des clés de storage du namespace de
+  l'app, sinon une query key sans userId fuit au compte suivant.
+- Storage de session : SecureStore, par le plugin Expo de Better Auth ; pas de chiffrement maison
+  par-dessus.
 
 ## Derrière notre API (tRPC)
 
-Le client de l'API maison (`api.md`), à la place de `<entité>.api.ts` et de Supabase.
+Le client de l'API maison (`api.md`) ; le gabarit d'une entité : § Données.
 
 - `lib/trpc.ts` : `createTRPCOptionsProxy<AppRouter>`, `httpBatchLink`, superjson.
   - Natif : `async headers()` qui **attend** `authClient.getCookie()` (asynchrone), avec
@@ -160,18 +137,8 @@ Le client de l'API maison (`api.md`), à la place de `<entité>.api.ts` et de Su
     polyfills.
 - Le cache vit dans l'app, aux paliers d'`archi.md` § Fraîcheur ; l'API répond `no-store`
   (`references/api-socle.md` § Serveur).
-- Le proxy remplace `<entité>.api.ts`. `<entité>.queries.ts` garde le `staleTime` :
-  `list: () => trpc.posts.list.queryOptions(undefined, { staleTime: 5 * 60_000 })`.
-- Les clés viennent de tRPC ; une mutation invalide la racine de sa feature,
-  `queryClient.invalidateQueries(trpc.posts.pathFilter())`. Invalider une autre feature passe
-  par le même proxy, sans l'exception d'import (§ Données).
-- **Les clés tRPC n'ont ni org ni user** : au changement d'org (`organization.setActive`) et à la
-  déconnexion (`authClient.signOut()` d'abord, sinon un écran monté relance sa query),
-  `queryClient.clear()` et la purge du persister.
-- Input inconnu au rendu : `enabled`, pas `skipToken` (§ Données), contre l'exemple
-  de la doc tRPC.
-- Session : `authClient.useSession()`, le hook de Better Auth, remplace le Context de § Auth et
-  session ; y tombent aussi `getClaims`, l'auto-refresh et la clé publishable.
+- **Les clés tRPC n'ont ni org ni user** : à la déconnexion (§ Auth et session) comme au
+  changement d'org (`organization.setActive`), `queryClient.clear()` et la purge du persister.
 - Côté app, le classifieur de § Réseau et hors ligne lit `error.data?.httpStatus`
   d'une `TRPCClientError` : absent → réseau ; 401 → déconnexion, sans toast ; 412 → écran de mise
   à jour (`api.md` § Versions installées de l'app) ; 400 → erreurs par champ (`data.zodError`), jamais le

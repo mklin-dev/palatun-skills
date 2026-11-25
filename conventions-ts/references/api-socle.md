@@ -6,7 +6,7 @@
 
 ## Auth
 
-- `packages/auth` : Better Auth, adapter Drizzle, tables dans la base (`web.md` § 🅑).
+- `packages/auth` : Better Auth, adapter Drizzle, tables dans la base (`references/base.md`).
   - `advanced.database.generateId: 'uuid'` avant le premier `generate` : Better Auth écrit des ID
     en texte par défaut, et une FK vers une PK `uuid` casserait.
   - Schéma : `pnpm dlx auth@<version de better-auth> generate` (le CLI suit sa ligne ;
