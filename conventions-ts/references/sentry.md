@@ -30,7 +30,11 @@ Sentry.init({
   ensuite : événements, sourcemaps et sauvegardes y restent ; comptes, réglages et support
   restent aux États-Unis (vérifié le 2026-11-24). Le contrat de traitement (DPA) signé, Seer (l'IA
   de Sentry) coupé.
-- **Production seulement** : jamais de DSN dans un `.env` local. Un `next build && next start` local tourne en `production` et passerait le filet `enabled` ; un poste de dev avec DSN envoie. Pour tester en local : un build de prod (`next build && next start`) avec le DSN posé dans le shell **au build** (`NEXT_PUBLIC_` est inliné) ; un `next dev` n'envoie rien, par construction. Variante : un `if` autour de l'init quand d'autres branchements en dépendent.
+- **Production seulement** : jamais de DSN dans un `.env` local. Un `next build && next start`
+  local tourne en `production` et passerait le filet `enabled` ; un poste de dev avec DSN envoie.
+  Pour tester en local : un build de prod (`next build && next start`) avec le DSN posé dans le
+  shell **au build** (`NEXT_PUBLIC_` est inliné) ; un `next dev` n'envoie rien, par construction.
+  Variante : un `if` autour de l'init quand d'autres branchements en dépendent.
 - Hors de `dataCollection`, une clé absente est volontaire : ne rien ajouter. Replay et profiling
   sont opt-in : ne pas les ajouter suffit. Dans `dataCollection` (SDK 11), l'inverse : une clé
   absente collecte, chaque catégorie s'écrit.

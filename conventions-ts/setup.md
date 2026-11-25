@@ -66,7 +66,7 @@ export default [
 
 Le code serveur ajoute, après `conventions()`, `...comportement({ dir: import.meta.dirname })`
 (`dir` comme lui) ; ce qu'il tient : `api.md` § Verrous, 6. Ses règles typées veulent le typed
-linting. L'app et les sites le prendront à leur tour.
+linting.
 
 Un `eslint.config` en CommonJS l'importe par `require()` (Node ≥ 22.12). Un dépôt qui l'importe
 installe le paquet (§ La doc du projet).

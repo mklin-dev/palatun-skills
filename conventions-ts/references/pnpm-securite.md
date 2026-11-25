@@ -46,7 +46,8 @@ failles des actions GitHub épinglées (skill `ci-setup`, `check.md`, puce Épin
      corrigée, sinon par l'étape 3.
   2. Supprimer l'entrée qu'il ajoute au bloc `minimumReleaseAgeExclude` du `pnpm-workspace.yaml` ;
      `@palatun/*` y reste (`minimumReleaseAge`, plus bas).
-  3. Ce qui reste : le parent fige la version **exacte** (eas-cli : joi, nanoid, tar… ; miniflare : undici) → `overrides:` scopé par majeure, raison en commentaire.
+  3. Ce qui reste : le parent fige la version **exacte** (eas-cli : joi, nanoid, tar… ; miniflare :
+     undici) → `overrides:` scopé par majeure, raison en commentaire.
   4. Correctif seulement en **majeure** (maplibre 5 → 6) : ce n'est pas un fix, c'est un chantier avec build et contrôle
      visuel. Dans l'outillage, sans risque pour l'app : classer l'alerte en *tolerable risk* avec sa raison
      (`gh api -X PATCH repos/<o>/<r>/dependabot/alerts/<n> -f state=dismissed -f dismissed_reason=tolerable_risk
@@ -77,7 +78,8 @@ failles des actions GitHub épinglées (skill `ci-setup`, `check.md`, puce Épin
     **isolée** = le signal qu'on cherche : ne pas bumper, vérifier.
   - Sonder une version dans un dossier scratch : supprimer son lockfile entre deux passes, sinon un
     lockfile déjà à jour ne résout rien et rend un « OK » trompeur.
-  - **`minimumReleaseAge`**, même vérification (pnpm 11.21, rien dans le yaml : délai de 24 h) : une entrée publiée depuis moins de 24 h fait échouer tout install neuf
+  - **`minimumReleaseAge`**, même vérification (pnpm 11.21, rien dans le yaml : délai de 24 h) :
+    une entrée publiée depuis moins de 24 h fait échouer tout install neuf
     (`ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`), donc tous les builds de prod, sans alerte, jusqu'à 24 h après sa
     publication. Merger un bump de la veille après ce délai.
     - Sauf `@palatun/*` : `minimumReleaseAgeExclude: ['@palatun/*']` dans le `pnpm-workspace.yaml` de chaque

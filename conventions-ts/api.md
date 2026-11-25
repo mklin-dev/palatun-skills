@@ -66,13 +66,14 @@ packages/
 
 - La forme vient de create-t3-turbo ; ses versions, figées, ne se copient pas.
 - Le monorepo est permis : deux apps partagent le type du routeur (`archi.md` § Interdits).
-- Un schéma Zod qui sert une seule procédure reste inline, dans son fichier d'action ; partagé
-  par plusieurs, dans le `lib/` de la feature. `packages/validators` n'importe
+- Un schéma Zod reste inline (`SKILL.md` § Zod), ici dans son fichier d'action ; partagé par
+  plusieurs procédures, dans le `lib/` de la feature. `packages/validators` n'importe
   jamais `packages/db` (l'app le lit) : ses schémas s'écrivent en Zod.
 - Un schéma inline de l'API qui suit une table se dérive sans la colonne de tenant, que la table
   exige, et avec l'`id`, que l'app envoie (§ Accès aux données) :
   `createInsertSchema(posts).omit({ orgId: true, createdAt: true }).required({ id: true })` ;
-  l'org vient d'`actor`, jamais de l'input (vu sur drizzle-zod 0.8).
+  l'org vient d'`actor`, jamais de l'input (vu sur drizzle-zod 0.8, et sur drizzle-orm
+  1.0, où `createInsertSchema` vient de `drizzle-orm/zod`).
 - L'app Expo dans le monorepo : `mobile.md` § Tests, build et EAS.
 
 `packages/api/src` : un dossier par ressource, un fichier par action, presque rien à la racine :
@@ -185,7 +186,7 @@ export const postsRouter = {
 - **Son refus remonte traduit** : le `.data.ts` lit le code de `err.cause` (Drizzle enveloppe
   l'erreur `pg`), `P0001` → `UNPROCESSABLE_CONTENT` avec le message de l'exception, `23505` →
   `CONFLICT`, et relance le reste. Sinon tRPC en fait un 500 : bug pour l'app, Sentry (vu sur
-  drizzle-orm 0.45).
+  drizzle-orm 0.45 et 1.0).
 - RLS : pas par réflexe (`web.md` § 🅑). Une base qui la garde (reprise de Supabase) : l'API se
   connecte sans superuser ni `BYPASSRLS`, qui la contournent toujours, et sans posséder les
   tables (sinon `FORCE ROW LEVEL SECURITY`). Dans la transaction de la requête :

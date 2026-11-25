@@ -1,6 +1,6 @@
 # conventions-ts — sources
 
-Relevées du 2026-10-26 au 2026-11-24 par recherche (registre npm, sources des paquets, docs officielles). « § X »
+Relevées du 2026-10-26 au 2026-11-25 par recherche (registre npm, sources des paquets, docs officielles). « § X »
 seul renvoie au `SKILL.md`. Une règle qui dépend d'une version (son marqueur : `SKILL.md`) ou
 tranche contre l'usage cite sa source ici ; la vérifier avant de rouvrir la règle.
 
@@ -77,8 +77,8 @@ tranche contre l'usage cite sa source ici ; la vérifier avant de rouvrir la rè
 | Better Auth avale ses erreurs sans `onAPIError: { throw: true }` | `references/api-socle.md` § Observabilité | https://www.better-auth.com/docs/reference/options (`onAPIError`) · un test de la route d'auth sur Hono, vu rouge sans l'option (2026-11-24) |
 | Un `member` refusé sur chaque base de permission : API5:2023 | `api.md` § Tests | https://api-security.owasp.org/editions/2023/en/0xa5-broken-function-level-authorization/ |
 | Sentry 11 : `dataCollection` permissif par défaut, `--import`, `@sentry/hono` | `references/sentry.md` | https://github.com/getsentry/sentry-javascript/blob/develop/MIGRATION.md |
-| `createInsertSchema` exige une colonne `notNull` sans défaut | `api.md` § Squelette | tarball `drizzle-zod@0.8.3` `index.mjs` |
-| Erreur `pg` enveloppée par Drizzle (`cause`) ; tRPC fait un 500 de toute erreur hors `TRPCError` | `api.md` § Accès aux données | tarball `drizzle-orm@0.45.4` `errors.js` · https://github.com/trpc/trpc/blob/main/packages/server/src/unstable-core-do-not-import/error/TRPCError.ts |
+| `createInsertSchema` exige une colonne `notNull` sans défaut | `api.md` § Squelette | tarball `drizzle-zod@0.8.3` `index.mjs` · tarball `drizzle-orm@1.0.0-rc.5` `zod/schema.js` (`optional`) |
+| Erreur `pg` enveloppée par Drizzle (`cause`) ; tRPC fait un 500 de toute erreur hors `TRPCError` | `api.md` § Accès aux données | tarballs `drizzle-orm@0.45.4` et `drizzle-orm@1.0.0-rc.5` (`errors.js`) · https://github.com/trpc/trpc/blob/main/packages/server/src/unstable-core-do-not-import/error/TRPCError.ts |
 | Message d'un `BAD_REQUEST` Zod = JSON des issues ; `data.code` nom, `data.httpStatus` nombre | `api.md` § Erreurs | https://github.com/trpc/trpc/blob/main/packages/server/src/unstable-core-do-not-import/middleware.ts · tarball `zod@4.6.7` `v4/core/errors.js` |
 | `getCookie()` rejette sur web (lit SecureStore sans garde) ; le client Better Auth en `credentials: 'include'` | `mobile.md` § Derrière notre API | tarball `@better-auth/expo@1.7.23` `dist/client.js:628-629` · tarball `expo-secure-store@58.0.3` `build/ExpoSecureStore.web.js` · tarball `better-auth@1.7.22` `client/config.mjs` |
 | Invitation sans création de compte ; `emailOTP` + `disableSignUp` refuse l'inconnu | `references/api-socle.md` § Auth | tarball `better-auth@1.7.22` `plugins/organization/routes/crud-invites.mjs` · `plugins/email-otp/routes.mjs` |
