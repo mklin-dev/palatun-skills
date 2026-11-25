@@ -10,11 +10,11 @@ Sentry.init({
   dsn: env.SENTRY_DSN,      // posé dans l'env de PROD seulement (hébergeur, EAS) ; absent = no-op
   enabled: process.env.NODE_ENV === 'production', // Expo : !__DEV__ — filet si un poste a le DSN
   dataCollection: { userInfo: false, cookies: false, httpBodies: [] /* … */ },
-                             // SDK 11 (@sentry/nextjs, @sentry/node) : sendDefaultPii n'existe plus, et sans dataCollection le SDK COLLECTE utilisateur,
+                             // SDK 11 (@sentry/nextjs, @sentry/node) : sendDefaultPii n'existe plus, et sans dataCollection le SDK collecte utilisateur,
                              // IP, cookies, en-têtes et corps. Objet complet, typé par `satisfies`, dans une constante
                              // partagée (SENTRY_DATA_COLLECTION). SDK encore sur core 10 (@sentry/react-native 8, vu sur
                              // core 10.78) : sendDefaultPii: false.
-  // App et API maison seulement : tracesSampleRate: 0.1. Ailleurs, PAS la clé : 0 n'éteint que
+  // App et API maison seulement : tracesSampleRate: 0.1. Ailleurs, pas de clé : 0 n'éteint que
   // l'envoi, l'instrumentation tournerait quand même ; sans la clé, aucun span créé.
 })
 ```
@@ -30,11 +30,7 @@ Sentry.init({
   ensuite : événements, sourcemaps et sauvegardes y restent ; comptes, réglages et support
   restent aux États-Unis (vérifié le 2026-11-24). Le contrat de traitement (DPA) signé, Seer (l'IA
   de Sentry) coupé.
-- **Production seulement** : jamais de DSN dans un `.env` local. Un `next build && next start`
-  local tourne en `production` et passerait le filet `enabled` ; un poste de dev avec DSN envoie.
-  Pour tester en local : un build de prod (`next build && next start`) avec le DSN posé dans le
-  shell **au build** (`NEXT_PUBLIC_` est inliné) ; un `next dev` n'envoie rien, par construction.
-  Variante : un `if` autour de l'init quand d'autres branchements en dépendent.
+- **Production seulement** : jamais de DSN dans un `.env` local : un poste qui l'a envoie dès qu'il lance un build de prod (`next build && next start` tourne en `production` et passe le filet `enabled`). Tester en local : ce build, le DSN posé dans le shell **au build** (`NEXT_PUBLIC_` est inliné) ; `next dev` n'envoie rien. Variante : un `if` autour de l'init quand d'autres branchements en dépendent.
 - Hors de `dataCollection`, une clé absente est volontaire : ne rien ajouter. Replay et profiling
   sont opt-in : ne pas les ajouter suffit. Dans `dataCollection` (SDK 11), l'inverse : une clé
   absente collecte, chaque catégorie s'écrit.

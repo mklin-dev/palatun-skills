@@ -83,7 +83,7 @@ Ce code disparaîtrait-il avec la feature ?
 - `@/…` dès qu'on sort du dossier courant ; `./` entre voisins immédiats. Pas de barrel
   `index.ts` : on importe le fichier par son chemin.
 
-**Trois verrous au lint**, sinon la règle dérive (constaté). Les deux premiers sont écrits une
+**Trois verrous au lint**, sinon la règle dérive. Les deux premiers sont écrits une
 fois pour tous les projets, dans `eslint.mjs` à côté de ce fichier (`setup.md` § ESLint) ; avec
 `type` `expo` ou `next`, il refuse aussi `../` :
 

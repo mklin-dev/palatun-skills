@@ -7,8 +7,8 @@ l'infra : `references/api-socle.md`.
 
 **Quand** : le backend d'une app mobile reste Supabase direct (`mobile.md`) ; une API maison
 quand Supabase est exclu, hébergeur européen exigé ou sous-traitant américain refusé. Elle tourne
-alors sur le VPS, pas sur Workers (skill `infra` : `choisir-hebergement.md`, `vps/stack.md`
-§ Clients publics).
+alors sur le VPS, pas sur Workers (skill `infra` : `docs/choisir-hebergement.md`,
+`docs/vps/stack.md` § Clients publics).
 
 ## Ce que contient une bonne API
 
@@ -62,7 +62,7 @@ packages/
 ├── api/         tRPC, l'arbre ci-dessous
 ├── auth/        config Better Auth, serveur seulement (l'app crée son client)
 ├── db/          schéma Drizzle, client, migrations SQL commitées
-└── validators/  au premier schéma Zod lu par l'app ET l'API (formulaire et input)
+└── validators/  au premier schéma Zod lu par l'app et par l'API (formulaire et input)
 ```
 
 - La forme vient de create-t3-turbo ; ses versions, figées, ne se copient pas.

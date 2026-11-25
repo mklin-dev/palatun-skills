@@ -54,15 +54,11 @@ export default [
 ];
 ```
 
-`conventions({ dir, src, type, allow })` :
-- `dir` = `import.meta.dirname` (`__dirname` en CommonJS), jamais `process.cwd()` ; `src: '.'`
-  pour un projet sans `src/` (`archi.md` § Squelette) ;
-- `type` (`expo`, `next`, `api`) : l'arbre du type en liste blanche (`archi.md` § Squelette,
-  `api.md` § Squelette ; le code fait foi : `arbre()` dans `eslint.mjs`), les noms, `../` hors
-  d'`api` ; en `api`, les verrous de tRPC (`api.md` § Verrous, 1, 4 et 5) ; sans lui, les seuls
-  verrous d'import ;
-- `allow` : les chemins propres au projet, depuis `src/` (un dossier ou un motif), chacun avec
-  sa raison dans son `AGENTS.md`.
+`conventions({ dir, src, type, allow })` : ses options, leur sens et leurs défauts, dans la
+JSDoc de `conventions()` (`eslint.mjs`) ; l'arbre de chaque `type` : `archi.md` § Squelette,
+`api.md` § Squelette. `dir` : jamais `process.cwd()` ; `type` : `../` refusé hors d'`api`, et en
+`api` les verrous de tRPC (`api.md` § Verrous, 1, 4 et 5) ; `allow` : chaque chemin avec sa raison
+dans l'`AGENTS.md` du projet.
 
 Le code serveur ajoute, après `conventions()`, `...comportement({ dir: import.meta.dirname })`
 (`dir` comme lui) ; ce qu'il tient : `api.md` § Verrous, 6. Ses règles typées veulent le typed
@@ -77,9 +73,8 @@ l'arbre, les noms et les directives, que le paquet apporte (`eslint-plugin-bound
 - **les verrous 1 et 2** d'`archi.md` § Règle d'import et verrou ;
 - **avec `type`** : l'arbre (son message ne se règle pas : l'`AGENTS.md` du projet y renvoie,
   § La doc du projet), les noms (`SKILL.md` § Nommage), `../` hors du dossier et, en `next`,
-  Cloudflare hors d'un `lib/` (`web.md` § Cloudflare dans lib) ; `../` permis en `api` : un paquet
-  qui exporte ses sources n'a pas d'alias `@/`, que le client qui importe ses types résoudrait
-  chez lui ;
+  Cloudflare hors d'un `lib/` (`web.md` § Cloudflare dans lib) ; `../` permis en `api` (sa raison :
+  `structure()`, `eslint.mjs`) ;
 - **les promesses orphelines**, en `error` : du typed linting en cherry-pick, tout le preset
   type-checked étant bruyant ; `onSubmit={handleSubmit(…)}` de React Hook Form passe tel quel, un
   handler `async` nu reste interdit par `SKILL.md` § TypeScript — règles, sans lint, et
@@ -152,8 +147,8 @@ Seul sur un dépôt, le skill installé sur le poste suffit, tant que son lint n
 `eslint.mjs` : la CI n'a pas le poste, ce dépôt installe alors le paquet. Un dépôt où d'autres
 développent sur ces conventions l'installe aussi : `@palatun/conventions-ts` en devDependency,
 le même d'un dépôt à l'autre, jamais retouché (une équipe qui a ses propres règles ne le reçoit
-pas), et `minimumReleaseAgeExclude: ['@palatun/*']` dans son `pnpm-workspace.yaml` : une
-version s'installe dès sa publication (`references/pnpm-securite.md`, `minimumReleaseAge`). Deux
+pas), et l'exclusion de `@palatun/*` du délai de pnpm dans son `pnpm-workspace.yaml`
+(`references/pnpm-securite.md`, `minimumReleaseAge`). Deux
 liens relatifs le donnent aux agents : `.agents/skills/conventions-ts` →
 `node_modules/@palatun/conventions-ts`, `.claude/rules/conventions-ts.md` → son `SKILL.md` ; sans
 `pnpm install`, ni le skill, ni la règle, ni les hooks. `verif-feature` et les autres skills de
@@ -241,7 +236,8 @@ reprise d'un dépôt qui l'a>
   (le chemin standard), avec un lien dans `.claude/skills/` ; à effet de bord (release, déploiement) :
   `disable-model-invocation: true` (Claude), sinon l'agent peut la lancer seul.
 - **`AGENTS.md` seul**, jamais de `CLAUDE.md` à côté : pour Claude Code, un `CLAUDE.md` masque
-  l'`AGENTS.md` (une version ancienne, sans télémétrie, ne lit que `CLAUDE.md` : la mettre à jour).
+  l'`AGENTS.md` (avant Claude Code 2.1.281, une session sans télémétrie ne lit que `CLAUDE.md` : mettre
+  Claude Code à jour).
   Codex coupe sans prévenir une chaîne d'`AGENTS.md` trop longue (`scripts/check-agents.sh`).
 - **`DESIGN.md`**, un par interface (à la racine, ou dans son app d'un monorepo), sur l'un des
   deux gabarits de `flow-design` (§ 0) : un site, tokens en tête ; une app à primitives maison,

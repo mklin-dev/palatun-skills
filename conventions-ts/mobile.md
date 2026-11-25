@@ -13,11 +13,10 @@ imports, verrous) : `archi.md`.
    `features/posts/PostDetailScreen.tsx`. Un écran par route, zéro hook, zéro requête.
 2. **L'écran ne touche jamais le client** : il consomme des `queryOptions` ou un hook. Le verrou 3
    permet le SDK dans `*.api.ts`, `lib/supabase.ts` et `lib/auth/` seulement.
-3. **`staleTime` explicite** (`SKILL.md` § TanStack Query).
-4. **Largeur mesurée, jamais `Platform.OS`**, pour décider d'un layout.
-5. **Natif d'abord** : vérifier `@expo/ui` avant d'installer une lib UI.
-6. **New Architecture obligatoire** : une dépendance native qui ne la supporte pas est morte.
-7. **Zéro valeur visuelle hors du thème** : pas un hex, pas un `fontSize` dans un écran.
+3. **Largeur mesurée, jamais `Platform.OS`**, pour décider d'un layout.
+4. **Natif d'abord** : vérifier `@expo/ui` avant d'installer une lib UI.
+5. **New Architecture obligatoire** : une dépendance native qui ne la supporte pas est morte.
+6. **Zéro valeur visuelle hors du thème** : pas un hex, pas un `fontSize` dans un écran.
 
 ## Routes et navigation
 
@@ -48,11 +47,11 @@ imports, verrous) : `archi.md`.
 Deux fichiers par entité, dans la feature :
 
 ```ts
-// features/posts/posts.api.ts — fonctions Supabase pures, Row BRUTE, testables hors React
+// features/posts/posts.api.ts — fonctions Supabase pures, Row brute, testables hors React
 export async function listPosts(orgId: string) {
   const { data, error } = await supabase
     .from('posts').select(POST_COLUMNS)
-    .eq('organization_id', orgId)        // la RLS isole le TENANT, pas l'org ACTIVE
+    .eq('organization_id', orgId)        // la RLS isole le tenant, pas l'org active
     .order('created_at', { ascending: false }).limit(100)
   if (error) throw error
   return data
@@ -84,15 +83,15 @@ export const createPostMutation = () => mutationOptions({
   la requête.
 - Paliers de `staleTime` : `archi.md` § Fraîcheur ; polling : `references/react-details.md` ;
   règles de TanStack : `SKILL.md` § TanStack Query.
-- Clés : `all` sans dimension, dérivés qui spreadent `...keys.all`, jamais une string en dur ;
-  les mutations invalident la racine. Invalider une autre feature = importer sa factory de clés :
+- Clés : `all` sans dimension, dérivés qui spreadent `...keys.all` ; les mutations invalident la
+  racine. Invalider une autre feature = importer sa factory de clés :
   seule exception à l'isolation, permanente, un `eslint-disable-next-line` motivé sur l'import. Plusieurs services d'un domaine qui s'invalident entre eux : un module de clés sans
   import de valeur, sinon un cycle produit des `undefined` à l'init, en silence.
 - Écriture : `.select().maybeSingle()` puis `if (!row) throw new BusinessRuleError(…)`. **Zéro
   ligne = refus RLS, jamais un faux succès.** `.single()` pour l'insert seul ; `.maxAffected(n)`
   borne par le haut sans prouver qu'une ligne a bougé.
 - Liste, panne, ce qui va jusqu'à l'écran : `archi.md` § Lectures.
-- On ne fait pas : de mapper camelCase (la Row va jusqu'au JSX), d'envelope `{ success, data }`.
+- On ne fait pas d'envelope `{ success, data }`.
 - Fichiers : bucket privé, chemin `{org}/{domaine}/{id}/{fichier}` avec la RLS sur le 1er
   segment ; la colonne stocke le chemin, re-signé à la lecture ; la signature ne throw pas
   (icône de repli) et a une version batch. Clé de cache image stable : le chemin + `#<updated_at>`.

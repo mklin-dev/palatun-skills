@@ -131,7 +131,7 @@ Ne jamais fetcher son propre Route Handler depuis un Server Component : on appel
 cet ordre strict :
 
 ```ts
-'use server'                        // ⚠️ expose TOUS les exports de ce fichier
+'use server'                        // ⚠️ expose tous les exports de ce fichier
 export async function updateInvoice(input: unknown) {
   const actor = await requireManager()               // 1. autorisation (garde, early-return)
   if (!actor.ok) return { error: 'Accès refusé' }
@@ -140,7 +140,7 @@ export async function updateInvoice(input: unknown) {
   // 3. règle métier nécessitant une requête
   const res = await updateInvoiceRow(await getDb(), actor, parsed.data)  // 4. accès aux données
   if (res.failed) return { error: 'Enregistrement impossible' }       // 5. traduction
-  updateTag(`invoices:${actor.orgId}`)                                // 6. revalidation
+  refresh()                                                           // 6. revalidation (next/cache)
   return {}                                                           // 7. retour
 }
 ```
@@ -188,8 +188,8 @@ export async function updateInvoice(input: unknown) {
 ## Auth et sécurité
 
 ```text
-proxy.ts               redirection OPTIMISTE par cookie  → confort, jamais une sécurité
-action / handler       session + droits revérifiés       → LA frontière
+proxy.ts               redirection optimiste par cookie  → confort, jamais une sécurité
+action / handler       session + droits revérifiés       → la frontière
 RLS (🅐) / données (🅑)  dernier filet                    → même si le handler se trompe
 ```
 
