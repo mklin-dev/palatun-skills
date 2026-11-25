@@ -113,6 +113,7 @@ tranche contre l'usage cite sa source ici ; la vérifier avant de rouvrir la rè
 | Pagination par curseur, `{ items, nextCursor }` | `api.md` § Accès aux données | https://trpc.io/docs/client/tanstack-react-query/usage |
 | Un `create` rejoué sans doublon : une clé fournie par le client | `api.md` § Accès aux données | https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/ |
 | Journal d'audit des gestes sensibles | `api.md` § Accès aux données | https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html · https://github.com/OWASP/ASVS/tree/master/5.0/en (16.3) |
+| Connexion tracée par le hook `after` de Better Auth (`createAuthMiddleware`) | `api.md` § Accès aux données | https://better-auth.com/docs/concepts/hooks |
 | Version minimale de l'app imposée par l'API | `api.md` § Versions installées de l'app | https://clerk.com/changelog/2026-11-03-minimum-app-version · https://docs.expo.dev/versions/latest/sdk/application/ |
 | `no-store` sur une réponse authentifiée ; `secureHeaders` sans CSP | `references/api-socle.md` § Serveur | https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html · tarball `hono@4.13.21` `dist/middleware/secure-headers/secure-headers.js` |
 | `statement_timeout` et `idle_in_transaction_session_timeout` à 0 par défaut ; options du client `pg` | `references/api-socle.md` § Serveur | https://www.postgresql.org/docs/current/runtime-config-client.html · https://node-postgres.com/apis/client |

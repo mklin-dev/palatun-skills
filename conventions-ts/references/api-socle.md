@@ -1,7 +1,8 @@
 # API maison — le socle
 
 > Lu à la création d'une API et pour son infra (auth, serveur, journal et Sentry, jobs,
-> fichiers), sur renvoi d'`api.md`. Le quotidien d'une feature : `api.md`.
+> fichiers), sur renvoi d'`api.md`. Le quotidien d'une feature : `api.md`. Les organisations,
+> les jobs et les fichiers ne se posent que si l'app en a ; le reste vaut pour toute API.
 
 ## Auth
 
@@ -22,14 +23,14 @@
   seulement.
 - L'app crée son client : `createAuthClient` de `better-auth/react`, avec
   `expoClient({ scheme, storagePrefix, storage: SecureStore })` et les plugins client
-  (`emailOTPClient`, `organizationClient`) ; les champs du serveur par
+  (`emailOTPClient` ; `organizationClient` avec des organisations) ; les champs du serveur par
   `inferAdditionalFields<typeof auth>()`, `auth` importé en type.
 - OTP par mail : plugin `emailOTP`, l'envoi par `sendVerificationOTP`. Il crée le compte
-  inconnu. Une invitation du plugin `organization` ne crée pas de compte et son acceptation
-  exige une session : `disableSignUp: true` bloquerait l'invité. L'inscription reste ouverte, et
-  `databaseHooks.user.create.before` refuse une adresse sans invitation en attente (vu sur
-  better-auth 1.7).
-- Multi-tenant : plugin `organization` (tables `organization`, `member`, `invitation`).
+  inconnu : l'inscription est ouverte. Une app sur invitation (plugin `organization`) la garde
+  ouverte aussi : une invitation ne crée pas de compte et son acceptation exige une session,
+  `disableSignUp: true` bloquerait l'invité ; `databaseHooks.user.create.before` y refuse une
+  adresse sans invitation en attente (vu sur better-auth 1.7).
+- Avec des organisations : plugin `organization` (tables `organization`, `member`, `invitation`).
   `orgProcedure` lit `session.activeOrganizationId`, puis relit la ligne `member` ; un droit :
   `api.md` § Procédures. L'org active se pose à la création de la session
   (`databaseHooks.session.create.before`) : sinon `null` jusqu'à `organization.setActive`, et
@@ -50,7 +51,7 @@
   (`freshAge`) ou une confirmation par mail (`sendDeleteAccountVerification`). `beforeDelete`
   règle ce que le compte laisse : une org dont il est le seul owner, ses fichiers, ses jobs.
 - **Un compte de test pour la review des stores** (Apple et Google Play l'exigent) : une adresse
-  posée par env (`REVIEW_EMAIL`), membre d'une org de démo ; `generateOTP` lui rend un code fixe
+  posée par env (`REVIEW_EMAIL`), avec ses données de démo ; `generateOTP` lui rend un code fixe
   (`REVIEW_OTP`, un secret) et `sendVerificationOTP` ne lui envoie rien.
 - Pas le plugin `bearer` : la doc le réserve aux API sans cookies.
 
@@ -65,8 +66,8 @@
   `idle_in_transaction_session_timeout` (10 s) et `connectionTimeoutMillis` (5 s), que `pg` ne
   pose pas ; pas celui de pg-boss, dont les jobs durent plus. Chaque appel sortant (S3, mail,
   push) porte un `AbortSignal.timeout()` et ne suit pas de redirection.
-- Une action qui coûte (mail, push, URL d'envoi de fichier) a un plafond par org et par jour,
-  compté en base ; au-delà, `TOO_MANY_REQUESTS` (OWASP API4:2023).
+- Une action qui coûte (mail, push, URL d'envoi de fichier) a un plafond par propriétaire et par
+  jour, compté en base ; au-delà, `TOO_MANY_REQUESTS` (OWASP API4:2023).
 - `NODE_ENV` exigé par le schéma d'`env.ts`, `production` sur le VPS : sans lui, tRPC renvoie la
   pile d'appels, et le rate limit de Better Auth comme Sentry sont coupés.
 - **Le journal : pino**, dans le module de § Observabilité. Un logger enfant par requête porte
@@ -146,11 +147,11 @@
   aussi le nom de la file et le type de sa donnée :
   `boss.send(file, data, { db: fromDrizzle(tx, sql) })`. Annulée, pas de job ; validée, il part
   même si le process tombe juste après (vu sur pg-boss 12).
-- **Le job porte des ID** (`orgId`, `postId`), jamais l'objet ni une donnée personnelle : sa
-  donnée reste en base 7 jours après la fin (vu sur pg-boss 12). Le handler
-  (`<feature>.jobs.ts`) relit par une fonction du `.data.ts` qui prend l'`orgId` du job à la
-  place d'`actor`. Un travail sur toutes les orgs (une purge) : une fonction du `.data.ts` nommée
-  pour (`purgeExpired…`), que seul un `.jobs.ts` appelle.
+- **Le job porte des ID** (le propriétaire, `postId`), jamais l'objet ni une donnée
+  personnelle : sa donnée reste en base 7 jours après la fin (vu sur pg-boss 12). Le handler
+  (`<feature>.jobs.ts`) relit par une fonction du `.data.ts` qui prend le propriétaire du job à
+  la place d'`actor`. Un travail sur tous les propriétaires (une purge) : une fonction du
+  `.data.ts` nommée pour (`purgeExpired…`), que seul un `.jobs.ts` appelle.
 - Une relance rejoue le job : son handler supporte de passer deux fois (une ligne marquée
   traitée).
 - Le planifié : `boss.schedule(file, cron, data, { tz: 'Europe/Paris' })` ; sans `tz`, le cron
@@ -158,10 +159,13 @@
 
 ## Fichiers
 
-- Le fichier ne passe pas par tRPC. Une procédure vérifie l'objet dans l'org, **génère la clé**
-  (`{orgId}/{domaine}/{id}/{uuid}`), l'écrit sur la ligne et rend l'URL présignée
-  (`@aws-sdk/s3-request-presigner`). L'app envoie au S3 et ne transmet jamais de chemin (OWASP :
-  un nom de fichier généré par l'application).
+- Le fichier ne passe pas par tRPC. Une procédure vérifie l'objet chez son propriétaire,
+  **génère la clé** (`{propriétaire}/{domaine}/{id}/{uuid}`) et rend l'URL présignée
+  (`@aws-sdk/s3-request-presigner`). L'app envoie au S3, puis confirme : une seconde procédure
+  contrôle que la clé reçue est bien de celles générées pour cet objet et que le fichier existe
+  (`HeadObject`), puis l'écrit sur la ligne. Écrite à la présignature, elle pointerait sur un
+  fichier absent après un envoi raté. L'app ne choisit jamais de chemin (OWASP : un nom de
+  fichier généré par l'application).
 - La lecture re-signe la clé stockée ; le format d'envoi : `mobile.md` § Données.
 - Un PUT présigné ne borne pas la taille : une POST policy avec `content-length-range` quand
   elle compte. Le bucket porte sa règle CORS pour le web.

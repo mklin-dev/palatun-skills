@@ -13,26 +13,27 @@ alors sur le VPS, pas sur Workers (skill `infra` : `choisir-hebergement.md`, `vp
 ## Ce que contient une bonne API
 
 La liste à tenir ; le comment vit dans la section citée (« socle » : `references/api-socle.md` ;
-« mobile » : `mobile.md`).
+« mobile » : `mobile.md`). Une ligne « avec des organisations » ou « si l'app en a » ne vaut que
+là ; les autres valent pour toute API.
 
 | Axe | Exigence | Où |
 | --- | --- | --- |
 | Contrat | typé de bout en bout, sans génération | § La stack |
 | | changements additifs ; une version minimale de l'app, imposée par l'API | § Versions installées de l'app |
-| Données | chaque requête filtrée par org ; hors de l'org, `NOT_FOUND` | § Accès aux données |
+| Données | chaque requête filtrée par son propriétaire (l'utilisateur, ou l'org) ; hors de sa portée, `NOT_FOUND` | § Accès aux données |
 | | l'input validé et borné ; un `update` limité à ses champs | § Accès aux données |
-| | la sortie en colonnes nommées ; une liste paginée par curseur | § Accès aux données |
+| | la sortie en colonnes nommées ; une liste sans fin paginée par curseur | § Accès aux données |
 | | un `create` rejoué ne crée pas de doublon | § Accès aux données |
-| | une action sensible laisse une ligne d'audit | § Accès aux données |
+| | avec des organisations : une action sensible laisse une ligne d'audit | § Accès aux données |
 | Auth | session Better Auth par cookie, CSRF bloqué, durées écrites | socle § Auth |
-| | un droit = une permission, posée par la base de procédure | § Procédures |
+| | avec des organisations : un droit = une permission, posée par la base de procédure | § Procédures |
 | | le compte se supprime depuis l'app ; un compte de test pour les stores | socle § Auth |
 | Débit et coût | une limite par IP de confiance et par adresse ; un plafond par action coûteuse | socle § Auth, § Serveur |
 | Robustesse | tout borné dans le temps : SQL, transaction, appel sortant | socle § Serveur |
 | | une panne lève ; un refus a son code | § Erreurs |
 | Cache | dans l'app (TanStack) ; l'API répond `no-store` | mobile § Derrière notre API, socle § Serveur |
 | Observabilité | un seul module ; à Sentry les 5xx, avec release et contexte ; au journal les refus | socle § Observabilité |
-| Exploitation | jobs en base, nés dans la transaction ; fichiers par URL présignée | socle § Jobs, § Fichiers |
+| Exploitation | si l'app en a : jobs en base, nés dans la transaction ; fichiers par URL présignée | socle § Jobs, § Fichiers |
 | | build bundlé, image sans root, arrêt propre, `/health` | socle § Serveur |
 | Preuve | isolation, accès, droits, arbre et noms tenus par des tests | § Tests |
 
@@ -45,7 +46,7 @@ La liste à tenir ; le comment vit dans la section citée (« socle » : `refere
 | Base | Drizzle + `pg` | `web.md` § 🅑 (connexion, migrations, schéma) |
 | Auth | Better Auth en lib | `web.md` § 🅑 ; plugin Expo officiel |
 | Validation | Zod v4 | `SKILL.md` § Zod |
-| Jobs | pg-boss | file et cron dans la base de l'API, sans Redis (socle § Jobs) |
+| Jobs, si l'app en a | pg-boss | file et cron dans la base de l'API, sans Redis (socle § Jobs) |
 
 - Montent ensemble, à la dernière de leur ligne : les `@trpc/*` (peers exacts) ; `better-auth`,
   `@better-auth/*` et le CLI `auth`, qui publient souvent des correctifs de sécurité.
@@ -61,18 +62,20 @@ packages/
 ├── api/         tRPC, l'arbre ci-dessous
 ├── auth/        config Better Auth, serveur seulement (l'app crée son client)
 ├── db/          schéma Drizzle, client, migrations SQL commitées
-└── validators/  schémas Zod lus par l'app ET l'API (formulaire et input)
+└── validators/  au premier schéma Zod lu par l'app ET l'API (formulaire et input)
 ```
 
 - La forme vient de create-t3-turbo ; ses versions, figées, ne se copient pas.
 - Le monorepo est permis : deux apps partagent le type du routeur (`archi.md` § Interdits).
 - Un schéma Zod reste inline (`SKILL.md` § Zod), ici dans son fichier d'action ; partagé par
   plusieurs procédures, dans le `lib/` de la feature. `packages/validators` n'importe
-  jamais `packages/db` (l'app le lit) : ses schémas s'écrivent en Zod.
-- Un schéma inline de l'API qui suit une table se dérive sans la colonne de tenant, que la table
-  exige, et avec l'`id`, que l'app envoie (§ Accès aux données) :
-  `createInsertSchema(posts).omit({ orgId: true, createdAt: true }).required({ id: true })` ;
-  l'org vient d'`actor`, jamais de l'input (vu sur drizzle-zod 0.8, et sur drizzle-orm
+  jamais `packages/db` (l'app le lit) : ses schémas s'écrivent en Zod. Il naît au premier
+  schéma que l'app et l'API lisent tous les deux, pas avant.
+- Un schéma inline de l'API qui suit une table se dérive sans la colonne du propriétaire
+  (`userId` ; `orgId` avec des organisations), que la table exige, et avec l'`id`, que l'app
+  envoie (§ Accès aux données) :
+  `createInsertSchema(posts).omit({ userId: true, createdAt: true }).required({ id: true })` ;
+  le propriétaire vient d'`actor`, jamais de l'input (vu sur drizzle-zod 0.8, et sur drizzle-orm
   1.0, où `createInsertSchema` vient de `drizzle-orm/zod`).
 - L'app Expo dans le monorepo : `mobile.md` § Tests, build et EAS.
 
@@ -115,16 +118,17 @@ packages/api/src/
 const t = initTRPC.context<Context>().create({ transformer: superjson, errorFormatter })
 export const createTRPCRouter = t.router
 export const publicProcedure = t.procedure
-export const protectedProcedure = publicProcedure.use(requireSession)  // UNAUTHORIZED
-export const orgProcedure = protectedProcedure.use(requireMember)      // FORBIDDEN, pose ctx.actor
+export const protectedProcedure = publicProcedure.use(requireSession)  // UNAUTHORIZED, pose ctx.actor
+// avec des organisations seulement : FORBIDDEN, ajoute l'org et le rôle à ctx.actor
+export const orgProcedure = protectedProcedure.use(requireMember)
 
 // packages/api/src/features/posts/by-id.ts — une procédure, l'export d'après sa clé
-export const postsById = orgProcedure
+export const postsById = protectedProcedure
   .input(z.object({ id: z.uuid() }))
   .query(({ ctx, input }) => getPost(ctx.db, ctx.actor, input.id))
 
 // packages/api/src/features/posts/create.ts
-export const postsCreate = orgProcedure
+export const postsCreate = protectedProcedure
   .input(createPostSchema)                    // de packages/validators : le formulaire le lit
   .mutation(({ ctx, input }) => createPost(ctx.db, ctx.actor, input))
 
@@ -140,15 +144,24 @@ export const postsRouter = {
   lint le refuse (§ Verrous, 1). Le choix de la bonne base reste à la relecture.
 - **Le contexte lit la session sans jamais lever** (`auth.api.getSession({ headers })`) : le
   refus vient du middleware de la procédure.
-- **L'org et l'identité arrivent par `ctx.actor`**, posé par `orgProcedure` depuis l'appartenance
-  relue en base ; jamais un `organizationId` ni un `userId` dans un input (`web.md` § Données).
-- **Un droit = une base de plus**, empilée sur `orgProcedure` : elle vérifie une permission
-  (`requirePermission({ member: ['update'] })`) contre les rôles du contrôle d'accès du plugin
-  `organization` (`ac`), pour chacun des rôles de `ctx.actor.role`, séparés par des virgules.
+- **L'identité arrive par `ctx.actor`**, posé par `protectedProcedure` depuis la session
+  (`{ userId }`) ; jamais un `userId` ni un `organizationId` dans un input (`web.md` § Données).
+- **Sans organisation, le défaut d'une app simple** : le propriétaire d'un objet est
+  `actor.userId`. **Avec des organisations** (plugin `organization`,
+  `references/api-socle.md` § Auth) : `orgProcedure` relit l'appartenance en base et ajoute
+  `orgId` et `role` à `ctx.actor` ; le propriétaire devient `actor.orgId`, et ce qui reste à
+  l'utilisateur quelle que soit l'org (son profil, la liste de ses organisations) garde
+  `protectedProcedure`.
+- **Avec des organisations, un droit = une base de plus**, empilée sur `orgProcedure` : elle
+  vérifie une permission (`requirePermission({ member: ['update'] })`) contre les rôles du
+  contrôle d'accès du plugin `organization` (`ac`), pour chacun des rôles de `ctx.actor.role`,
+  séparés par des virgules.
   Jamais l'égalité d'un rôle (`role === 'admin'` refuse l'`owner` et un `admin,member`), jamais un
   `if` sur le rôle dans un handler.
 - `query` lit, `mutation` écrit. Noms : `list`, `byId`, `create`, `update`, `delete`, puis un
-  verbe métier (`close`, `cancel`) ; jamais `get`, `fetch` ni `all`. Un test le tient (§ Tests).
+  verbe métier (`close`, `cancel`) ; une lecture qui ne rend ni une liste ni un objet par son ID
+  se nomme par ce qu'elle rend (`settings`, `fleet`) ; jamais `get`, `fetch` ni `all`. Un test le
+  tient (§ Tests).
 - **Le handler tient en un appel** à l'accès aux données ; une règle métier qui exige une
   requête vit dans le `.data.ts` ou en base. Le lint le tient (§ Verrous, 4).
 - **Une procédure n'en appelle jamais une autre** : `createCaller` y rejoue contexte,
@@ -158,9 +171,10 @@ export const postsRouter = {
 
 - `<entité>.data.ts` : la connexion en 1er paramètre, `actor` en 2e, `tx` seul dans une
   transaction (`web.md` § Données, § 🅑).
-- **Chaque requête filtre par `actor.orgId`, `byId` compris** : lire l'objet d'une autre org par
-  son ID est le risque n° 1 des API (OWASP API1:2023). Hors de l'org, l'objet rend `NOT_FOUND`,
-  jamais `FORBIDDEN`, qui confirmerait qu'il existe.
+- **Chaque requête filtre par son propriétaire** (`actor.userId` ; `actor.orgId` avec des
+  organisations), **`byId` compris** : lire l'objet d'un autre par son ID est le risque n° 1 des
+  API (OWASP API1:2023). Hors de sa portée, l'objet rend `NOT_FOUND`, jamais `FORBIDDEN`, qui
+  confirmerait qu'il existe.
 - **Les colonnes renvoyées sont une constante nommée** (`db.select(POST_COLUMNS)`, `columns`
   en requête relationnelle) : `db.select()` nu renvoie toutes les colonnes, et la réponse passe
   la frontière serveur → app comme une page web (`archi.md` § Lectures).
@@ -168,16 +182,19 @@ export const postsRouter = {
   API4:2023).
 - L'input d'un `update` liste ses champs (`.pick()`), jamais le schéma entier : sinon `role`,
   `status` ou `ownerId` passent (OWASP API3:2023).
-- **Une liste se pagine par curseur** : l'input porte `cursor` (la clé de tri du dernier élément)
-  et `limit`, la réponse `{ items, nextCursor }`, triée sur une clé stable (`createdAt`, puis
-  `id`) : la forme que lit `useInfiniteQuery`. Un `offset` saute ou répète une ligne quand la
-  liste bouge.
+- **Une liste sans fin se pagine par curseur** (un fil, un historique) : l'input porte `cursor`
+  (la clé de tri du dernier élément) et `limit`, la réponse `{ items, nextCursor }`, triée sur
+  une clé stable (`createdAt`, puis `id`) : la forme que lit `useInfiniteQuery`. Un `offset`
+  saute ou répète une ligne quand la liste bouge. Une liste bornée par nature (les membres
+  d'une équipe, les lignes d'un objet) rend tout, triée, sans curseur.
 - **Un `create` porte l'`id` généré par l'app** (`z.uuid()`) : rejoué après une coupure
   (`mobile.md` § Réseau et hors ligne), il retombe sur la même ligne (`onConflictDoNothing`, puis
-  relecture filtrée par org : `web.md` § 🅑).
-- **Une action sensible laisse une ligne d'audit** (membres, rôles, invitations, suppressions,
-  exports) : qui, quoi, sur quel objet, quand, dans quelle org, en ID seulement ; écrite par le
-  `.data.ts`, dans la transaction de l'action.
+  relecture filtrée par propriétaire : `web.md` § 🅑).
+- **Avec des organisations, une action sensible laisse une ligne d'audit** (membres, rôles,
+  invitations, suppressions, exports) : qui, quoi, sur quel objet, quand, dans quelle org, en ID
+  seulement ; écrite par le `.data.ts`, dans la transaction de l'action. La connexion, que
+  Better Auth sert hors de toute procédure, s'y écrit par son hook `after` (`hooks.after`, vu sur
+  better-auth 1.7).
 - **Une panne lève**, jamais le `{ failed: true }` du web : une query qui le recevrait le
   prendrait pour un succès vide, mis en cache. tRPC rend l'erreur, TanStack relance. Le
   `.data.ts` ne rattrape que pour traduire un refus (ci-dessous).
@@ -200,7 +217,7 @@ export const postsRouter = {
 | Input mal formé (Zod) | `BAD_REQUEST` | 400 |
 | Pas de session | `UNAUTHORIZED` | 401 |
 | Rôle insuffisant | `FORBIDDEN` | 403 |
-| Objet absent ou d'une autre org | `NOT_FOUND` | 404 |
+| Objet absent ou hors de portée | `NOT_FOUND` | 404 |
 | Doublon (contrainte unique) | `CONFLICT` | 409 |
 | Refus métier (déjà clôturée, quota) | `UNPROCESSABLE_CONTENT` | 422 |
 | App sous la version minimale | `PRECONDITION_FAILED` | 412 |
@@ -237,8 +254,8 @@ voit :
 
 - Une procédure se teste par `createCaller` (Vitest), avec un contexte construit à la main, sans
   requête, sur une vraie base.
-- **Deux tests d'isolation par entité** : l'objet d'une autre org rend `NOT_FOUND`, en lecture
-  comme en écriture ; la liste de l'org A ne contient pas l'objet de B.
+- **Deux tests d'isolation par entité** : l'objet d'un autre propriétaire (utilisateur, ou org)
+  rend `NOT_FOUND`, en lecture comme en écriture ; la liste de A ne contient pas l'objet de B.
 - Une mutation qui crée un job (`references/api-socle.md` § Jobs) : le setup lance
   `boss.start()` et `createQueues()`, jamais `startWorkers()`, qui consommerait le job ; le test
   le lit par `boss.findJobs(file)` (vu sur pg-boss 12).
@@ -258,8 +275,8 @@ voit :
   `UNAUTHORIZED`, sauf une liste `PUBLIC` écrite dans le test. Rougissent : une procédure neuve
   sur `publicProcedure`, et une qui valide son input avant l'auth (`.input()` posé avant la base
   protégée), qui répondrait `BAD_REQUEST` à un inconnu.
-- **Un test tient les droits** (OWASP API5:2023) : chaque procédure d'une base de permission,
-  appelée par un `member` sans cette permission, rend `FORBIDDEN`.
+- Avec des organisations, **un test tient les droits** (OWASP API5:2023) : chaque procédure
+  d'une base de permission, appelée par un `member` sans cette permission, rend `FORBIDDEN`.
 
 ## Verrous
 
