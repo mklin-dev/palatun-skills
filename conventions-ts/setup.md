@@ -21,7 +21,9 @@ Ce que chaque projet porte ; un écart s'écrit dans son `AGENTS.md`, avec sa ra
 - **La CI** : skill `ci-setup`. **Les dépendances** (Dependabot, actions épinglées) :
   `references/pnpm-securite.md`.
 - **Le merge** : squash seul et branche effacée au merge (GitHub → Settings → General → Pull
-  Requests) : un commit par PR sur la base, le titre de la PR pour sujet.
+  Requests) : un commit par PR sur la base, le titre de la PR pour sujet ; un dépôt sans
+  collaborateur, son message : « Pull request title and description » (`PR_BODY`), le pourquoi
+  écrit une fois (skill `git-commit`).
 
 ## TypeScript — config
 
