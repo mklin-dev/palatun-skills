@@ -11,12 +11,13 @@ Prouver au lieu d'affirmer, à la taille du travail :
 | Taille | ④ relire | ④ contre-vérifier |
 | --- | --- | --- |
 | Retouche (le diff se dit en une phrase), ou sans logique nouvelle (déplacé, renommé, doc, config) | dans la session ; sans logique nouvelle : signatures, props et imports neufs | ❌ |
-| Feature, gros chantier, ou **chemin à risque quelle que soit la taille** | par un relecteur neuf | ✅ |
+| Le reste, ou **chemin à risque quelle que soit la taille** | par un relecteur neuf | ✅ |
 
-Un chemin à risque : auth, droits (RLS) ou SQL, secrets, migration de données ; les garde-fous
-de l'agent (settings, hooks, règles Codex, définitions d'agents, `.mcp.json`, manifeste de
-plugin ; dans un `AGENTS.md`, `CLAUDE.md` ou `SKILL.md`, une règle qui autorise, interdit ou
-supprime : mot exact, permission, suppression) ; la CI ; plus la ligne `À risque` du projet.
+Un chemin à risque : auth, droits (RLS) ou SQL, secrets, schéma ou migration de données,
+interface publique (API, paquet ou plugin publiés) ; les garde-fous de l'agent (settings,
+hooks, règles Codex, définitions d'agents, `.mcp.json`, manifeste de plugin ; dans un
+`AGENTS.md`, `CLAUDE.md` ou `SKILL.md`, une règle qui autorise, interdit ou supprime : mot
+exact, permission, suppression) ; la CI ; plus la ligne `À risque` du projet.
 `risque.txt` (①) en relève les chemins connus, pas tous. Une autre règle, ou la prose d'un skill
 (`SKILL.md`, `references/`), est relue dans la session, quelle que soit la taille ; ses scripts
 suivent le tableau. Une règle d'un `AGENTS.md`, `CLAUDE.md` ou `SKILL.md` qui autorise, interdit
@@ -97,7 +98,7 @@ l'interface touchée, règles globales.
 du lot, avec les règles ; seuls les constats que la session confirme en relisant le code passent
 en ⑤.
 
-**Relecteur neuf** (feature, gros chantier, chemin à risque) : l'agent `adversarial-reviewer`
+**Relecteur neuf** (hors retouche, chemin à risque) : l'agent `adversarial-reviewer`
 s'il existe, sinon un sous-agent neuf au modèle `opus`, à qui le brief interdit d'écrire. Il
 reçoit le chemin absolu de `references/relecture.md`, du dossier de travail (`verif.diff`,
 `commits.txt`, `spec.md`, `verif.out`) et des règles. Une étape `En plus` peut fournir son propre
