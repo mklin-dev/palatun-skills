@@ -9,12 +9,8 @@ Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mie
 
 ## Créer
 
-- **Sur accord de l'utilisateur** (le oui d'un plan suffit) ; la tenir à jour et la fermer : libre.
-- **À jour**, pour qu'une session neuve reprenne sans le chat : à chaque point d'étape d'un
-  chantier pas fini, son corps dit les décisions prises en route et la prochaine étape ; l'epic, sa
-  « Prochaine étape » au lancement de chaque sous-issue. Le corps, pas un commentaire :
-  `gh issue view` sans terminal n'en montre que le nombre, et chacun notifie qui suit le dépôt.
-  Sans issue (une retouche) : la description de sa PR.
+- **Sur accord de l'utilisateur** (le oui d'un plan suffit) ; la tenir à jour (§ Tenir à jour)
+  et la fermer : libre.
 - Un fix fait tout de suite : pas d'issue, la PR suffit.
 - **Une issue = une PR.** La PR porte `Closes #N` dans sa description : l'issue se ferme au merge
   sur la branche par défaut. Une PR qui ne tient pas tout le « Fini quand » : le reste part dans
@@ -35,10 +31,31 @@ Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mie
     intention ;
   - **les fichiers pressentis**, revérifiés dans le code au lancement ; une `task` n'en a pas ;
   - **`## Todo`**, en dernier : les étapes, ou les unités d'un lot ; une ligne = un commit, avec sa
-    preuve (la commande, l'écran ou le test qui la vérifie) ; une issue créée d'avance le reçoit
-    au lancement.
+    preuve : les tests qu'elle touche, le test vu rouge d'un bug, la commande ou l'écran ; une
+    issue créée d'avance la reçoit au lancement.
+  - Ni la Todo ni le « Fini quand » ne demandent la suite entière ou une suite e2e entière :
+    `verif-feature` les passe une fois, en fin de branche. Pourquoi : une Todo qui l'exigeait à
+    chaque étape l'a fait tourner 7 fois sur une PR (2026-11-22).
 - **Un seul label** : `bug` (ça casse), `enhancement` (feature, amélioration), `task` (un geste
   humain sans code, fermé à la main ou par l'automate qui l'a ouvert), `epic`. Pas de jalon.
+
+## Tenir à jour
+
+- **Entre le lancement et le merge, rien** : l'avancement se lit dans les commits, les décisions
+  prises en route vont dans la description de la PR. Pourquoi : `Closes` et les commits disent
+  déjà où en est le chantier, et une mise à jour à chaque étape le recopie.
+- **Au merge** :
+  - l'issue : `Closes` la ferme au merge sur la branche par défaut ; sur une autre base, la
+    fermer à la main si son « Fini quand » est tenu (§ Fermer, abandonner, regrouper) ;
+  - une sous-issue d'epic : la « Prochaine étape » de l'epic nomme la partie suivante, qui
+    s'enchaîne (§ Epic) ; la dernière : § Fermer, abandonner, regrouper ;
+  - le plan local : la ligne de la partie et sa « Prochaine étape », de retour au checkout
+    principal ; la dernière : § Sans ticket, puce Fini.
+- **Un chantier qui s'arrête avant son merge** (pause, autre sujet) : le corps de son issue, ou
+  la description de sa PR sans issue, dit les décisions prises et la prochaine étape, pour
+  qu'une session neuve reprenne sans le chat.
+- **Le corps, pas un commentaire** : `gh issue view` sans terminal n'en montre que le nombre, et
+  chacun notifie qui suit le dépôt.
 
 ## Epic
 
@@ -67,15 +84,15 @@ Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mie
   semaine passe pour un plan fini oublié.
 - Tenu comme une epic, sous le même accord, design compris : en tête « Fini quand » et
   « Prochaine étape » ; puis une ligne par partie (ce qu'une PR livre) avec son état, vérifié sur
-  sa PR, sa branche et sa PR ; les décisions datées dessous. À jour comme une epic (§ Créer, puce
-  « À jour »), au merge de chaque partie, de retour au checkout principal.
+  sa branche et sa PR ; les décisions datées dessous. À jour au merge de chaque partie
+  (§ Tenir à jour).
 - Fini : ses décisions durables passent dans la doc du projet, puis il part sur le mot
   `supprime` (git ne le suit pas).
 
 ## Fermer, abandonner, regrouper
 
-- Au merge, par `Closes`. L'epic se ferme avec sa dernière sous-issue, sauf une epic née d'un
-  audit : elle se ferme quand les mêmes audits, rejoués, ne sortent plus aucun constat vérifié.
+- L'epic se ferme avec sa dernière sous-issue, sauf une epic née d'un audit : elle se ferme quand
+  les mêmes audits, rejoués, ne sortent plus aucun constat vérifié.
 - Abandon : `gh issue close <n> --reason "not planned" --comment "<une phrase>"`.
 - Trop d'issues : les critères des petites passent dans la partie qui les absorbe, puis elles se
   ferment `not planned` avec « Repris dans #M ».
