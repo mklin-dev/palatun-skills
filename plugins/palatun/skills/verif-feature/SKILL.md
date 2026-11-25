@@ -147,8 +147,10 @@ rouge d'abord. Le reste (ligne plus ancienne, autre fichier, comportement que pe
 demandé, `PLAUSIBLE`, `Nit:`, « à trancher ») va au bilan, numéroté ; l'utilisateur choisit. Puis
 ③ relancée, et le diff du fix (`git diff` depuis l'état relu) relu une fois dans la session contre
 `references/relecture.md` ; un fix qui touche un chemin à risque est relu, lui, par un relecteur
-neuf, ses constats prouvés comme en ④. Pourquoi : un fix non relu est du code que personne n'a vérifié, et
-depuis que ④ part avant les commandes, le fix d'une commande rouge vient toujours après lui.
+neuf, ses constats prouvés comme en ④, sauf un fix de docs seules (③ point 2) : dans la session.
+Pourquoi : un fix non relu est du code que personne n'a vérifié, et depuis que ④ part avant les
+commandes, le fix d'une commande rouge vient toujours après lui ; pour une phrase de règle, un
+troisième tour d'agents coûtait plus que le fix (2026-11-25).
 
 ## Le bilan
 
