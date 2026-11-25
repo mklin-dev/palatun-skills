@@ -6,12 +6,12 @@ description: Use when a feature, fix or branch is finished, before a PR or merge
 # verif-feature — vérifier avant PR ou merge
 
 Prouver au lieu d'affirmer, à la taille du travail :
-`① préparer → ② simplifier → ③ prouver → ④ relire → ⑤ corriger → bilan`.
+`① préparer → ② simplifier → ③ prouver ∥ ④ relire → ⑤ corriger → bilan` (∥ : en même temps).
 
 | Taille | ④ relire | ④ contre-vérifier |
 | --- | --- | --- |
 | Retouche (le diff se dit en une phrase), ou sans logique nouvelle (déplacé, renommé, doc, config) | dans la session ; sans logique nouvelle : signatures, props et imports neufs | ❌ |
-| Le reste, ou **chemin à risque quelle que soit la taille** | par un relecteur neuf | ✅ |
+| Le reste, ou **chemin à risque quelle que soit la taille** | par un relecteur neuf, en fond | ✅ ce qu'aucune commande ne reproduit |
 
 Un chemin à risque : auth, droits (RLS) ou SQL, secrets, schéma ou migration de données,
 interface publique (API, paquet ou plugin publiés) ; les garde-fous de l'agent (settings,
@@ -64,7 +64,10 @@ sa branche, sauf les odeurs de code (proposées) ; en lecture seule ou hors du l
 
 D'abord relancer `prepare.sh` : ② et le merge de la base ont changé le diff, et la preuve comme la
 relecture portent sur ce qui sera mergé. De là au retour du vérificateur (④), l'arbre ne bouge
-pas : relecteur et vérificateur lisent ce diff.
+pas : relecteur et vérificateur lisent ce diff. Un relecteur neuf (④) part alors en fond, avant
+les commandes, et lit pendant qu'elles tournent ; une commande rouge : son fix attend la fin de
+④, vérificateur compris, et passe en ⑤. Pourquoi : en série, la session restait 14 à 20 min à
+vide après ses commandes (trois sessions lentes, du 2026-11-17 au 23).
 
 1. **Les tests touchés d'abord**, dans `verif.diff` : assertions retirées, cas supprimés, `skip`,
    attendus modifiés. ❌ si une régression est masquée ou si un comportement requis perd sa
@@ -101,34 +104,50 @@ en ⑤.
 **Relecteur neuf** (hors retouche, chemin à risque) : l'agent `adversarial-reviewer`
 s'il existe, sinon un sous-agent neuf au modèle `opus`, à qui le brief interdit d'écrire. Il
 reçoit le chemin absolu de `references/relecture.md`, du dossier de travail (`verif.diff`,
-`commits.txt`, `spec.md`, `verif.out`) et des règles. Une étape `En plus` peut fournir son propre
-brief : il remplace `references/relecture.md`, et le vérificateur tourne quand même. Pas le
+`commits.txt`, `spec.md`, et `verif.out`, que ③ remplit pendant sa relecture) et des règles. Une
+étape `En plus` qui relit (une grille d'audit) lui est donnée aussi : elle remplace les trois axes
+de `references/relecture.md`, dont l'en-tête et le format restent ; jamais un agent de plus, et
+la contre-vérification reste la même. Pas le
 `/code-review` intégré : il ne reçoit ni spec ni messages de commit (le texte qui le suit est une
 cible), ne vérifie ses constats qu'en `max` et vise un nombre minimum de constats ; à la demande,
 un second avis sur les bugs, en plus du relecteur.
 
-**Puis contre-vérifier** ses constats bloquants et importants, en un lot (pas les `Nit:` : une
-erreur y coûte peu ; aucun constat : pas de vérificateur ; jamais la session à sa place) : un second sous-agent neuf au modèle
-`opus`, avec le chemin absolu de `references/contre-verification.md`, le dossier de travail et
-l'arbre relu ; à son retour, `git status` : un fichier qu'il aurait laissé dans
-le dépôt passe dans le dossier de travail (`mv`) avant ⑤ : ③ relancée ne voit que le lot, et
-le bilan le nomme.
+**Puis, au retour du relecteur**, les commandes qu'il dit absentes de `verif.out` se recoupent :
+une qui manque tourne avant ⑤. Et la preuve de ses constats bloquants et importants (pas les
+`Nit:` : une erreur y coûte peu) :
+- **Par une commande**, quand une commande le reproduit : un lint, le CLI sur l'entrée du
+  scénario, un script d'essai ; jamais une recherche de présence ou d'absence (`grep`), qui ne
+  voit pas un fait dit en d'autres mots ou rangé ailleurs. Elle vise l'arbre relu par son chemin
+  (un outil du `PATH` peut lancer un autre checkout), son essai s'écrit dans le dossier de
+  travail ; sa sortie le montre, il est `CONFIRMED`, et elle va dans `bilan.md`. Une commande qui
+  ne le reproduit pas ne le réfute pas : il part au vérificateur.
+- **Par un vérificateur**, les autres, en un lot (aucun : pas de vérificateur ; jamais la session à
+  sa place) : un second sous-agent neuf au modèle `opus`, avec le chemin absolu de
+  `references/contre-verification.md`, le dossier de travail et l'arbre relu.
+
+Après les deux voies, `git status` : un fichier neuf laissé dans le dépôt passe dans le dossier de
+travail (`mv`) avant ⑤, car ③ relancée ne voit que le lot, et le bilan le nomme ; un fichier suivi
+modifié : arrêt, le dire.
+
 Pourquoi : un relecteur trouve toujours quelque chose, et un faux constat corrigé coûte un fix et
 une régression possible ; un vérificateur séparé est le seul moyen dont un gain de précision est
-mesuré.
+mesuré ; une commande qui reproduit le constat le prouve, plus vite (7 min de vérificateur pour un
+constat qu'une commande montrait, 2026-11-22).
 
-Lancés en fond : le reste avance (la PR si les règles l'ouvrent, la CI), et un bilan de clôture
-suit leur retour. Un seul tour ; une seconde relecture, sur demande. Pas de sous-agent possible :
-relire soi-même avec les deux briefs, et le bilan le dit.
+Lancés en fond : les commandes de ③ et le reste avancent (la PR, ③ vert, si les règles l'ouvrent ;
+la CI), et un bilan de clôture suit leur retour. Un seul tour ; une seconde relecture, sur
+demande. Pas de sous-agent possible : relire soi-même avec les deux briefs, et le bilan le dit.
 
 ## ⑤ Corriger
 
-Sur sa branche, hors lecture seule, en un lot : les constats bloquants et importants `CONFIRMED`
-sur des lignes que la branche a écrites ; un bug : son test rouge d'abord. Le reste (ligne plus
-ancienne, autre fichier, comportement que personne n'a demandé, `PLAUSIBLE`, `Nit:`, « à
-trancher ») va au bilan, numéroté ; l'utilisateur choisit. Puis ③ relancée, et le diff du fix
-(`git diff` depuis l'état relu) relu une fois dans la session contre `references/relecture.md`.
-Pourquoi : un fix non relu est du code que personne n'a vérifié.
+Sur sa branche, hors lecture seule, en un lot : les commandes rouges de ③, et les constats
+bloquants et importants `CONFIRMED` sur des lignes que la branche a écrites ; un bug : son test
+rouge d'abord. Le reste (ligne plus ancienne, autre fichier, comportement que personne n'a
+demandé, `PLAUSIBLE`, `Nit:`, « à trancher ») va au bilan, numéroté ; l'utilisateur choisit. Puis
+③ relancée, et le diff du fix (`git diff` depuis l'état relu) relu une fois dans la session contre
+`references/relecture.md` ; un fix qui touche un chemin à risque est relu, lui, par un relecteur
+neuf, ses constats prouvés comme en ④. Pourquoi : un fix non relu est du code que personne n'a vérifié, et
+depuis que ④ part avant les commandes, le fix d'une commande rouge vient toujours après lui.
 
 ## Le bilan
 
