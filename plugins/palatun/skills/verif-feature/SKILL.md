@@ -105,9 +105,10 @@ en ⑤.
 s'il existe, sinon un sous-agent neuf au modèle `opus`, à qui le brief interdit d'écrire. Il
 reçoit le chemin absolu de `references/relecture.md`, du dossier de travail (`verif.diff`,
 `commits.txt`, `spec.md`, et `verif.out`, que ③ remplit pendant sa relecture) et des règles. Une
-étape `En plus` qui relit (une grille d'audit) lui est donnée aussi : elle remplace les trois axes
-de `references/relecture.md`, dont l'en-tête et le format restent ; jamais un agent de plus, et
-la contre-vérification reste la même. Pas le
+étape `En plus` qui relit (une grille d'audit) lui est donnée aussi : elle remplace l'axe 1 de
+`references/relecture.md` (les règles), le reste du brief tient ; jamais un agent de plus, et la
+contre-vérification reste la même. Pourquoi : une grille ne couvre que ses familles, et sans
+l'axe 2 un diff hors d'elles passait sans relecture de la spec ni des bugs (2026-11-25). Pas le
 `/code-review` intégré : il ne reçoit ni spec ni messages de commit (le texte qui le suit est une
 cible), ne vérifie ses constats qu'en `max` et vise un nombre minimum de constats ; à la demande,
 un second avis sur les bugs, en plus du relecteur.

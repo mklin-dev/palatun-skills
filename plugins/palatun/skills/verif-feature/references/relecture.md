@@ -6,7 +6,7 @@ des commandes et les règles. Les commandes tournent pendant ta relecture : lis 
 dernier ; une commande absente ou pas finie n'est pas un constat : liste-la dans ce que tu as
 écarté du jugement, l'appelant la recoupe. Trois axes, rapportés séparément : un axe ne doit pas
 en masquer un autre (un code conforme peut faire la mauvaise chose, et l'inverse). Une grille que
-l'appelant te donne en plus remplace ces trois axes ; le reste de ce brief tient.
+l'appelant te donne en plus remplace l'axe 1 ; les axes 2 et 3 et le reste de ce brief tiennent.
 
 ## Axe 1 — Règles
 
