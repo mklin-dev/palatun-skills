@@ -61,14 +61,18 @@ D'abord relancer `prepare.sh` (② et la base ont changé le diff) ; l'arbre ne 
 retour du vérificateur (④). Le relecteur neuf (④) part en fond, avant les commandes ; le fix d'une
 commande rouge attend la fin de ④, vérificateur compris, et passe en ⑤.
 
-1. **Les tests touchés d'abord**, dans `verif.diff` : assertion retirée, cas supprimé, `skip`,
-   attendu modifié. ❌ si une régression est masquée ou si un comportement requis perd sa
+1. **Les tests touchés d'abord** : `scripts/garde.sh <base>` signale un fichier de test supprimé,
+   un test sauté ajouté, un lint ou un type tus (`noqa`, `eslint-disable`, `@ts-ignore`…) ; la
+   session ne juge que ses signalements, et dans `verif.diff` les attendus modifiés ou retirés
+   (assertion, cas). ❌ si une régression est masquée ou si un comportement requis perd sa
    couverture ; une suppression redondante ou un attendu conforme à la demande n'est pas un défaut.
 2. **Les commandes**, sortie dans `verif.out` : celles de la CI du projet (lint, types, tests,
-   build ; jamais un déploiement) et de son `AGENTS.md` ; sinon, en TypeScript, `conventions-ts`
-   § Definition of Done ; aucune : le dire au bilan. Un workflow touché : actionlint puis zizmor.
-   Un lot de docs seules (que des `.md`, aucun lu comme réglage : définition d'agent, output
-   style, commande) : les commandes de docs de l'`AGENTS.md`, sinon les entières.
+   build ; jamais un déploiement) et de son `AGENTS.md`, par sa commande `verif` s'il en a une
+   (`./verif.sh`, `pnpm verif`), jamais recopiées dans un script de la session ; sinon, en
+   TypeScript, `conventions-ts` § Definition of Done ; aucune : le dire au bilan. Un workflow
+   touché : actionlint puis zizmor. Un lot de docs seules (que des `.md`, aucun lu comme réglage :
+   définition d'agent, output style, commande) : les commandes de docs de l'`AGENTS.md`, sinon les
+   entières.
 3. **Le vrai comportement** : UI → un navigateur piloté (`playwright-cli`), preuve par les données
    (texte de la page, réseau, contenu envoyé), attendus écrits rejoués, rendu changé en avant/après
    (`references/avant-apres.md`), motion relu (web : `review-animations` ; Expo : ses tokens de
@@ -123,8 +127,7 @@ bloquants et importants `CONFIRMED` sur des lignes que la branche a écrites ; u
 rouge d'abord. Le reste (ligne plus ancienne, autre fichier, comportement non demandé,
 `PLAUSIBLE`, `Nit:`, « à trancher ») : au bilan, numéroté ; l'utilisateur choisit. Puis ③
 relancée, et le diff du fix (`git diff` depuis l'état relu) relu une fois dans la session contre
-`references/relecture.md` ; un fix sur un chemin à risque, par un relecteur neuf, ses constats
-prouvés comme en ④, sauf un fix de docs seules (③ point 2) : dans la session.
+`references/relecture.md`, chemin à risque compris : jamais un troisième tour d'agents.
 
 ## Le bilan
 
