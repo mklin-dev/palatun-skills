@@ -18,7 +18,11 @@ const PRESET = {
   languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } },
   settings: { 'import/resolver': { node: { extensions: ['.ts', '.tsx', '.js'] } } },
 };
-const HORS_BANC = new Set(['conventions-ts/promesses-et-types', 'conventions-ts/jsx']);
+const HORS_BANC = new Set([
+  'conventions-ts/promesses-et-types',
+  'conventions-ts/strict',
+  'conventions-ts/jsx',
+]);
 
 /** Un projet temporaire : `fichiers` = chemin → contenu ; un dossier vide finit par `/`. */
 function projet(fichiers) {
@@ -528,6 +532,40 @@ async function lintServeur(fichiers, fichier, apres = []) {
 }
 
 const regles = (messages) => messages.map((m) => m.ruleId).sort();
+
+test('strict : le preset de typescript-eslint avec un type, ses règles bruyantes coupées', async () => {
+  const sans = conventions({ dir: projet({ 'src/': '' }) });
+  assert.equal(sans.find((b) => b.name === 'conventions-ts/strict'), undefined);
+  const code = 'export async function f(): Promise<number> {\n  return await 1;\n}\n';
+  const dir = projet({ 'tsconfig.json': TSCONFIG, 'src/lib/a.ts': code });
+  const blocs = conventions({ dir, type: 'api' });
+  const noms = blocs.map((b) => b.name);
+  const { rules } = blocs.find((b) => b.name === 'conventions-ts/strict');
+  assert.equal(rules['@typescript-eslint/no-deprecated'], 'off');
+  // Le bloc `eslint-recommended` du preset reste dehors : il couperait `no-unreachable`.
+  assert.equal(rules['no-unreachable'], undefined);
+  assert.equal(rules['prefer-const'], 'error');
+  // Le réglage de RHF (`checksVoidReturn`) vient après le preset : il gagne.
+  assert.ok(noms.indexOf('conventions-ts/strict') < noms.indexOf('conventions-ts/promesses-et-types'));
+  const strict = blocs.filter((b) => b.name === 'conventions-ts/strict');
+  const eslint = new ESLint({
+    cwd: dir,
+    overrideConfigFile: true,
+    overrideConfig: [
+      {
+        files: ['**/*.ts'],
+        languageOptions: { parser: tseslint.parser },
+        plugins: { '@typescript-eslint': tseslint.plugin },
+      },
+      ...strict,
+    ],
+  });
+  const [resultat] = await eslint.lintFiles([path.join(dir, 'src/lib/a.ts')]);
+  assert.deepEqual(regles(resultat.messages), [
+    '@typescript-eslint/await-thenable',
+    '@typescript-eslint/return-await',
+  ]);
+});
 
 test('comportement : console et @sentry/* seulement dans lib/observability/', async () => {
   const source =

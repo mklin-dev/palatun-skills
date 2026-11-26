@@ -69,16 +69,21 @@ installe le paquet (§ La doc du projet).
 
 `eslint.mjs` porte ce qui est identique partout ; les plugins du preset suffisent, sauf pour
 l'arbre, les noms et les directives, que le paquet apporte (`eslint-plugin-boundaries`,
-`eslint-plugin-check-file`, `@eslint-community/eslint-plugin-eslint-comments`) :
+`eslint-plugin-check-file`, `@eslint-community/eslint-plugin-eslint-comments`) ; du preset strict,
+il n'apporte que la liste des règles (`typescript-eslint`) :
 - **les verrous 1 et 2** d'`archi.md` § Règle d'import et verrou ;
 - **avec `type`** : l'arbre (son message ne se règle pas : l'`AGENTS.md` du projet y renvoie,
   § La doc du projet), les noms (`SKILL.md` § Nommage), le verrou 3, `../` hors du dossier et, en `next`,
   Cloudflare hors d'un `lib/` (`web.md` § Cloudflare dans lib) ; `../` permis en `api` (sa raison :
   `structure()`, `eslint.mjs`) ;
-- **les promesses orphelines**, en `error` : du typed linting en cherry-pick, tout le preset
-  type-checked étant bruyant ; `onSubmit={handleSubmit(…)}` de React Hook Form passe tel quel, un
-  handler `async` nu reste interdit par `SKILL.md` § TypeScript — règles, sans lint, et
-  `useEffect(async…)`, `tsc` le refuse ;
+- **avec `type`, le preset `strict-type-checked`** de typescript-eslint, moins ses règles qui
+  sortaient plus de 20 erreurs dans un de nos dépôts (`COUPEES`, `eslint.mjs`). Le plugin qui les
+  exécute reste celui du preset du projet, et `strict-type-checked` gagne des règles en version
+  mineure : une PR qui monte le paquet lance `pnpm dedupe`, puis
+  `pnpm why -r @typescript-eslint/eslint-plugin` ne montre qu'une version, sinon une règle que ce plugin ne connaît pas fait planter le lint ;
+- **les promesses orphelines**, en `error`, même sans `type` ; `onSubmit={handleSubmit(…)}` de
+  React Hook Form passe tel quel, un handler `async` nu reste interdit par `SKILL.md`
+  § TypeScript — règles, sans lint, et `useEffect(async…)`, `tsc` le refuse ;
 - **les imports de type** (autofix) : `verbatimModuleSyntax` laisse dans le JS émis une classe
   importée pour son seul type ;
 - **`react/no-unescaped-entities` coupée** : JSX échappe au runtime ; apostrophes en clair.

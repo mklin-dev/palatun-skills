@@ -11,10 +11,9 @@ toucher.
 
 ## React Compiler
 
-- ⚠️ Une fonction avec `finally` n'est pas compilée, sans avertissement (règle `todo` coupée,
-  vu sur eslint-plugin-react-hooks 7) ; le `try/catch` simple l'est.
-- `react-hooks/incompatible-library` signale une lib que le Compiler ne suit pas : `watch()` de
-  React Hook Form → `useWatch`.
+- ⚠️ Le Compiler saute, sans avertissement, une fonction dont un `try` a un `finally`, un `throw`,
+  ou une expression conditionnelle ou logique (`? :`, `&&`, `||`, `??`, `?.`) ; le reste d'un
+  `try/catch` compile (règle `todo` coupée, vu sur babel-plugin-react-compiler 1).
 - Sortie de secours : `'use no memo'` en tête de fonction, avec un commentaire qui dit pourquoi.
 
 ## TanStack Query

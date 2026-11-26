@@ -77,7 +77,7 @@ packages/
   `createInsertSchema(posts).omit({ userId: true, createdAt: true }).required({ id: true })` ;
   le propriétaire vient d'`actor`, jamais de l'input (vu sur drizzle-zod 0.8, et sur drizzle-orm
   1.0, où `createInsertSchema` vient de `drizzle-orm/zod`).
-- L'app Expo dans le monorepo : `mobile.md` § Tests, build et EAS.
+- L'app Expo dans le monorepo : Metro s'y règle seul (https://docs.expo.dev/guides/monorepos/).
 
 `packages/api/src` : un dossier par ressource, un fichier par action, presque rien à la racine :
 

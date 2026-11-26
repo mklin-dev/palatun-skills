@@ -12,7 +12,8 @@ import { existsSync, readdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 
-// Les plugins se chargent à l'appel de structure() ou de comportement() seulement : un dépôt qui
+// Les plugins et typescript-eslint se chargent à l'appel de structure(), strict() ou comportement()
+// seulement : un dépôt qui
 // importe ce fichier à sa source, sans installer le paquet ni ses dépendances, garde les seuls
 // verrous d'import.
 const charger = createRequire(import.meta.url);
@@ -233,6 +234,7 @@ export function conventions({ dir, src = 'src', type, allow = [] } = {}) {
         : {},
     },
     ...(type ? structure({ dir, src, type, allow, fichiers }) : []),
+    ...(type ? [strict(dir)] : []),
     {
       name: 'conventions-ts/promesses-et-types',
       files: ['**/*.{ts,tsx}'],
@@ -253,6 +255,45 @@ export function conventions({ dir, src = 'src', type, allow = [] } = {}) {
       rules: { 'react/no-unescaped-entities': 'off' },
     },
   ];
+}
+
+/**
+ * Coupées du preset : plus de 20 erreurs dans un de nos dépôts, mesuré le 2026-11-26 sur leur
+ * `main` ; la valeur : le plus d'erreurs dans un dépôt.
+ */
+const COUPEES = {
+  'no-confusing-void-expression': 651,
+  'restrict-template-expressions': 372,
+  'require-await': 180,
+  'no-unnecessary-condition': 98,
+  'no-unsafe-assignment': 78,
+  'no-non-null-assertion': 70,
+  'no-unnecessary-type-assertion': 69,
+  'no-deprecated': 35,
+};
+
+/**
+ * Le preset `strict-type-checked` de typescript-eslint, ses règles seules (setup.md § ESLint). De
+ * son bloc `eslint-recommended`, ce qu'il allume (`prefer-const`…) : ses coupures retireraient
+ * `no-unreachable`, que pose le preset Expo, et le preset du projet coupe déjà ce que TS vérifie.
+ */
+function strict(dir) {
+  const { configs } = charger('typescript-eslint');
+  const bloc = (nom) =>
+    configs.strictTypeChecked.find((c) => c.name === `typescript-eslint/${nom}`)?.rules;
+  const recommande = bloc('eslint-recommended');
+  const regles = bloc('strict-type-checked');
+  if (!recommande || !regles)
+    throw new Error('conventions-ts : typescript-eslint a renommé les blocs de strictTypeChecked');
+  const allumees = Object.entries(recommande).filter(([, v]) => v !== 'off');
+  const rules = { ...Object.fromEntries(allumees), ...regles };
+  for (const r of Object.keys(COUPEES)) rules[`@typescript-eslint/${r}`] = 'off';
+  return {
+    name: 'conventions-ts/strict',
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: { parserOptions: { projectService: true, tsconfigRootDir: dir } },
+    rules,
+  };
 }
 
 /** Les blocs d'un type : l'arbre, les noms, les imports (archi.md § Règle d'import et verrou). */

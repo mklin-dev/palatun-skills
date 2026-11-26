@@ -14,9 +14,7 @@ notre API) ; une API externe déjà existante ne change que le contenu de `<enti
 2. **L'écran ne touche jamais le client** : il consomme des `queryOptions` ou un hook. Le verrou 3
    permet le proxy (`@/lib/trpc`) dans `*.queries.ts` et `lib/` seulement (`api.md` § Verrous, 2).
 3. **Largeur mesurée, jamais `Platform.OS`**, pour décider d'un layout.
-4. **Natif d'abord** : vérifier `@expo/ui` avant d'installer une lib UI.
-5. **New Architecture obligatoire** : une dépendance native qui ne la supporte pas est morte.
-6. **Zéro valeur visuelle hors du thème** : pas un hex, pas un `fontSize` dans un écran.
+4. **Zéro valeur visuelle hors du thème** : pas un hex, pas un `fontSize` dans un écran.
 
 ## Routes et navigation
 
@@ -31,16 +29,15 @@ notre API) ; une API externe déjà existante ne change que le contenu de `<enti
 - Shell adaptatif piloté par la largeur mesurée (un iPad en split-screen est étroit) ; seuils
   dans un module de constantes, lus par un hook. Tabs natives par défaut, tab bar JS seulement si
   le shell est adaptatif.
-- **`@react-navigation/*` interdit** : Expo Router l'a forké, passer par `expo-router/*`. Deux
-  copies coexisteraient sans erreur de build. Ne jamais couper le check du bundler pour passer.
+- **`@react-navigation/*` interdit** : passer par `expo-router/*` ; ne jamais couper le check du
+  bundler pour passer.
 - Suffixes `.ios` / `.android` / `.web` / `.native` réservés à une implémentation qui diffère
-  vraiment, **hors de `src/app`** (une route exige sa version universelle), avec un `.d.ts`
-  frère. Un petit écart : `Platform.select`.
-- Une feature coupée par un flag garde chacune de ses routes (redirection vers l'accueil).
+  vraiment ; une route garde sa version universelle. Un petit écart : `Platform.select`.
 - Deep-link = fonction pure testable : payload `unknown` → `Href | null`, repli en cascade,
   feature flags consultés. Jamais d'écran cassé.
 - Push : module en import dynamique dans un effet, derrière une gate (web, Expo Go). Le tap qui a
-  ouvert l'app n'arrive pas au listener → `getLastNotificationResponseAsync()` en plus.
+  ouvert l'app n'arrive pas au listener → `getLastNotificationResponse()` en plus (vu sur
+  expo-notifications 58).
 
 ## Données
 
@@ -72,8 +69,7 @@ export const createPostMutation = () => trpc.posts.create.mutationOptions({
   feature (`trpc.posts.pathFilter()`). Invalider une autre feature passe par le même proxy, sans
   import entre features.
 - Liste, panne, ce qui va jusqu'à l'écran : `archi.md` § Lectures.
-- On ne fait pas : de fichier d'appels à côté (`<entité>.api.ts` : le proxy en tient lieu),
-  d'envelope `{ success, data }`.
+- On ne fait pas de fichier d'appels à côté (`<entité>.api.ts`) : le proxy en tient lieu.
 - Une API externe déjà existante : ses `queryOptions` s'écrivent à la main dans le même
   `<entité>.queries.ts`, autour d'un `fetch`, clés en factory (`SKILL.md` § TanStack Query).
 - Fichiers (`references/api-socle.md` § Fichiers) : envoi en `ArrayBuffer`, jamais en `Blob` (RN
@@ -82,14 +78,8 @@ export const createPostMutation = () => trpc.posts.create.mutationOptions({
 
 ### Réseau et hors ligne
 
-```text
-queryFn ──► erreur ──► classifieur isolé ──┬─► retry ?        (TanStack)
-                                           ├─► toast ?        (mutations, refetch de fond)
-                                           ├─► Sentry ?       (queries)
-                                           └─► repli hors ligne ?
-```
-
-- **Classifieur réseau isolé, sans import** (chargé avant Sentry), source unique des 4 branches ;
+- **Classifieur réseau isolé, sans import** (chargé avant Sentry), source unique du `retry`, du
+  toast, de Sentry et du repli hors ligne ;
   ce qu'il lit d'une erreur de l'API : § Derrière notre API.
 - Ordre de tri : réseau > auth > refus (4xx) > le reste (= bug : toast + capture). Un refus se
   toaste tel quel, jamais Sentry.
@@ -99,14 +89,11 @@ queryFn ──► erreur ──► classifieur isolé ──┬─► retry ?   
   la reconnexion) ; `retry` en fonction qui coupe sur erreur déterministe ;
   `refetchOnWindowFocus: false`.
 - `onlineManager` sur NetInfo **en natif seulement** ; `focusManager` sur `AppState` ; branchés
-  une fois, dans `lib/query-client`.
+  une fois.
 - `QueryBoundary` dans cet ordre : erreur sans données > en pause > chargement > contenu. Sans le
   cas `isPaused`, une query en pause reste `isPending` : skeleton infini.
-- Persistance : `persistQueryClient` + un persister sur le storage, avec **`gcTime ≥ maxAge`** et
-  un **`buster`** (hash de build). Pas de persister par query. Garder les mutations après un kill
-  d'app : un cran explicite, optionnel.
-- Écran non focalisé : prop `subscribed` de `useQuery` couplée à `useIsFocused()`, jamais
-  `enabled` (qui vide l'état).
+- Persistance : `persistQueryClient`, réglé selon sa doc (`gcTime`, `buster`) ; pas de persister
+  par query.
 
 ## Auth et session
 
@@ -147,34 +134,21 @@ Le client de l'API maison (`api.md`) ; le gabarit d'une entité : § Données.
 
 ## UI plateforme
 
-- Modules sortis du core RN, jamais importés de `react-native` : `SafeAreaView`, `Picker`,
-  `WebView`, l'`AsyncStorage` legacy. `expo-av` est mort (→ `expo-audio` / `expo-video`).
-- Storage clé-valeur : `expo-sqlite/kv-store`.
 - Une seule primitive `Sheet` dans `components/ui/`. `Modal` hors popovers natifs, `Alert.alert`
   et `window.confirm` interdits (no-op ou hors thème en navigateur) → un `ConfirmDialog`.
-- Pas de `SafeAreaProvider` (Expo Router le fournit) ; les primitives lisent
-  `useSafeAreaInsets()`.
+- Les primitives lisent `useSafeAreaInsets()`.
 - Thème : tokens sémantiques ; paires « soft » plutôt que des opacités à la main. Sans
   `colorScheme` synchronisé, `dark:` est du code mort : l'interdire.
 - Une famille d'icônes par projet ; chaque primitive de `components/ui/` citée dans `DESIGN.md`,
   vérifié par un test.
-- ⚠️ React Compiler + Reanimated : le compiler hisse les fonctions de `useDerivedValue` hors du
-  worklet (« Tried to synchronously call a non-worklet function on the UI thread ») →
-  `'use no memo'` en tête du fichier d'animation, avec un commentaire.
 
 ## Tests, build et EAS
 
-- `render()` de RNTL est async, l'`await` est obligatoire ; du texte hors `<Text>` lève.
-- Avant un `.test.ts` colocalisé, lire le `testMatch` de jest : s'il ne vise que `__tests__/`, le
-  test ne tourne jamais. Alias `@/` remappé à la main (`moduleNameMapper`) ; mêmes `exclude`
-  dans tsc, eslint et jest.
+- Mêmes `exclude` dans tsc, eslint et jest.
 - E2E : Maestro, 3 ou 4 parcours critiques, optionnel.
-- `runtimeVersion` en policy `fingerprint` ; le numéro de build vit chez EAS
+- `runtimeVersion` en policy `fingerprint` si l'app a expo-updates (OTA) ; le numéro de build vit chez EAS
   (`ci-setup/expo-eas.md`). Env validé par Zod en CI (`ci-setup/check.md`).
-- 3 profils EAS, pas plus : `preview` porte la config, `development` et `production` l'héritent par
-  `extends`. Secrets hors du dépôt, jamais en `EXPO_PUBLIC_`.
-- Dans un monorepo (`api.md` § Squelette), Metro se règle seul et pnpm marche en installs isolées
-  (SDK ≥ 54) : ni `watchFolders` à la main, ni `nodeLinker: hoisted` par défaut.
+- Secrets hors du dépôt, jamais en `EXPO_PUBLIC_`.
 - Sentry, plateforme seulement : init native, wrapper metro d'Expo (sans lui, pas de Debug ID),
   plugin dans la config, intégration Expo Router ; le reste → `SKILL.md`.
 
@@ -183,6 +157,6 @@ Le client de l'API maison (`api.md`) ; le gabarit d'une entité : § Données.
 | On ne fait pas | Pourquoi |
 | --- | --- |
 | Local-first (LiveStore, TanStack DB, Legend State…) | outillage pas mûr, selon Expo |
-| MMKV | prebuild + dépendance native ; `expo-sqlite/kv-store` suffit |
+| MMKV | prebuild + dépendance native ; AsyncStorage suffit |
 | Detox | Maestro est le seul E2E documenté par Expo |
 | Optimistic par défaut | rollback complexe pour un gain rare |

@@ -97,7 +97,7 @@ vient chaque règle ; dans le dépôt du skill, pas dans le paquet installé). U
   infinie, cache partagé), jamais une Server Action dans une `queryFn` (elles partent en série).
 - **React Native** : TanStack Query **est** la couche de cache ; gabarit et hors ligne :
   `mobile.md` § Données.
-- Clés : une factory `queryOptions()` par feature, jamais une string de clé en dur ailleurs.
+- Clés : hors tRPC (qui les fournit), une factory `queryOptions()` par feature, jamais une string de clé en dur ailleurs.
 - **`staleTime` explicite** sur chaque query, pris dans `archi.md` § Fraîcheur (défaut 0 : refetch à chaque
   montage).
 - **Erreurs** : `QueryCache.onError` global, Sentry dédupliqué par query ; toast seulement si des
@@ -111,7 +111,7 @@ vient chaque règle ; dans le dépôt du skill, pas dans le paquet installé). U
   défaut**.
 - Exceptions : référence stable exigée par une lib non React ou par une dépendance d'effet ; une
   mémo existante reste (l'enlever change la sortie compilée).
-- `finally` non compilé, `incompatible-library`, `'use no memo'` : `references/react-details.md`.
+- Ce que le Compiler saute sans le dire, `'use no memo'` : `references/react-details.md`.
 
 ## Formulaires
 

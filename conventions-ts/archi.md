@@ -45,7 +45,6 @@ src/
   (`setup.md` § ESLint).
 - Un projet qui a déjà un `utils/` le garde et y range ses nouveaux helpers purs ; le lint
   commun le compte dans le partagé, et son arbre l'admet par `allow: ['utils']`.
-- Les groupes de routes `(…)` rangent les URL ; ce ne sont pas des frontières de sécurité.
 
 ## Où je mets ce fichier
 
@@ -109,8 +108,8 @@ troisième vient avec `type`, qui refuse aussi `../` en `expo` et en `next` :
 
 - Les couches sans lecteur : `repositories/`, `use-cases/`, `gateways/`, `adapters/`, `ports/`,
   un `services/` ou un `validations/` global sous `lib/`.
-- Un composant métier dans `components/` ; une redirection (proxy, garde de nav) prise pour une
-  sécurité : le serveur garde ses contrôles.
+- Un composant métier dans `components/` ; une redirection (proxy, garde de nav) ou un groupe de
+  routes `(…)` pris pour une sécurité : le serveur garde ses contrôles.
 - Un monorepo avant qu'une deuxième app partage vraiment du code ; ensuite `apps/` + `packages/`.
 
 ## Données, partout pareil
@@ -125,7 +124,7 @@ façon :
 | Référence | contenu public, catalogue | statique, sinon `cacheLife('hours')` ¹ | `staleTime` 30 min |
 | Standard | listes métier | `cacheLife('minutes')` ¹, sinon rendu frais | 5 min |
 | Volatile | état, tableau de bord | rendu frais, `router.refresh()` | 30 à 60 s |
-| Écriture qui en dépend | stock avant commande | rendu frais, relu dans l'action | `0`, `refetchOnMount: 'always'` |
+| Écriture qui en dépend | stock avant commande | rendu frais, relu dans l'action | `0` |
 
 - ¹ Web : ce que le cache Next a le droit de garder : `web.md` § Cache. Rafraîchir sans
   écriture : `web.md` § Données.
