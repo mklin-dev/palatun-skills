@@ -1,6 +1,6 @@
 {
   "name": "@palatun/conventions-ts",
-  "version": "1.0.48",
+  "version": "1.0.49",
   "description": "Conventions TypeScript partagées : le skill pour les agents, le lint commun, les hooks git.",
   "repository": {
     "type": "git",

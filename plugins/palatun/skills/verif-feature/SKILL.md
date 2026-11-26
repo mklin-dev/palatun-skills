@@ -14,83 +14,72 @@ Prouver au lieu d'affirmer, à la taille du travail :
 | Le reste, ou **chemin à risque quelle que soit la taille** | par un relecteur neuf, en fond | ✅ ce qu'aucune commande ne reproduit |
 
 Un chemin à risque : auth, droits (RLS) ou SQL, secrets, schéma ou migration de données,
-interface publique (API, paquet ou plugin publiés) ; les garde-fous de l'agent (settings,
-hooks, règles Codex, définitions d'agents, `.mcp.json`, manifeste de plugin ; dans un
-`AGENTS.md`, `CLAUDE.md` ou `SKILL.md`, une règle qui autorise, interdit ou supprime : mot
-exact, permission, suppression) ; la CI ; plus la ligne `À risque` du projet.
-`risque.txt` (①) en relève les chemins connus, pas tous. Une autre règle, ou la prose d'un skill
-(`SKILL.md`, `references/`), est relue dans la session, quelle que soit la taille ; ses scripts
-suivent le tableau. Une règle d'un `AGENTS.md`, `CLAUDE.md` ou `SKILL.md` qui autorise, interdit
-ou supprime, seulement déplacée ou reformulée sans changer ce qu'elle permet, est relue dans la
-session aussi, chacune retrouvée à sa nouvelle place (`grep` avant et après), si elle reste dans un
-fichier chargé au moins aussi souvent ; sortie d'un fichier toujours chargé (vers une doc, une
-`references/`), elle cesse de s'appliquer : relecteur neuf. Pour le reste (arrêt de la suite de
-`merge`, rayon d'impact), elle reste un chemin à risque. Pourquoi : un tri de docs lançait
-relecteur et vérificateur à chaque PR (7 agents Opus, 52 min, pour 7 PR de docs, 2026-11-24).
+interface publique (API, paquet ou plugin publiés), la CI, la ligne `À risque` du projet, les
+garde-fous de l'agent (settings, hooks, règles Codex, définitions d'agents, `.mcp.json`,
+manifeste de plugin ; dans un `AGENTS.md`, `CLAUDE.md` ou `SKILL.md`, une règle qui autorise,
+interdit ou supprime : mot exact, permission, suppression). `risque.txt` (①) n'en voit pas tous
+les chemins. Toute autre règle, et la prose d'un skill (`SKILL.md`, `references/`) : relues dans
+la session, quelle que soit la taille ; ses scripts suivent le tableau. Une règle à risque
+seulement déplacée ou reformulée, sans changer ce qu'elle permet : relue dans la session aussi,
+chacune retrouvée à sa nouvelle place (`grep` avant et après), si elle reste dans un fichier
+chargé au moins aussi souvent ; sortie d'un fichier toujours chargé (vers une doc, une
+`references/`), elle cesse de s'appliquer : relecteur neuf. Elle reste un chemin à risque pour
+l'arrêt de la suite de `merge` et le rayon d'impact.
 
-**Lecture seule** — la branche d'un autre, ou une demande seule de vérifier (« vérifie », « code
-review », « audit ») : le passage entier, mais rien ne s'écrit d'office. La base se merge sur une
-tête détachée (`git switch --detach`), jamais sur la branche vérifiée, et la session revient sur
-la branche à la fin (`git switch -`) ; simplifications, fixes, mise à jour de la branche et
-description de sa PR vont au bilan en propositions, appliquées sur demande. Avant un push sur la
-branche d'un autre, `git fetch` : sa pointe a bougé depuis la vérif → arrêt, le dire (un travail
-de son auteur passerait sous le tien).
+**Lecture seule** (la branche d'un autre, ou une demande seule de vérifier : « vérifie », « code
+review », « audit ») : tout le passage, rien d'écrit d'office. La base se merge sur une tête
+détachée (`git switch --detach`), jamais sur la branche vérifiée, puis `git switch -` ; fixes,
+simplifications, mise à jour de la branche et description de sa PR : au bilan, en propositions.
+Avant un push sur la branche d'un autre, `git fetch` : sa pointe a bougé depuis la vérif →
+arrêt, le dire.
 
 ## ① Préparer
 
-1. **L'`AGENTS.md` du projet prime** (ou celui d'un dossier parent) : ses commandes (§ Commandes),
-   et dans sa § Flow deux lignes optionnelles, `À risque` (chemins sensibles en plus) et
-   `En plus` (une étape propre, une grille par exemple, et l'étape qui la lance).
-2. **Ce qui a commandé le diff** : design, spec, plan, ticket, ou le symptôme d'un bug ; une PR :
-   les issues qu'elle ferme (`gh pr view --json closingIssuesReferences`, puis `gh issue view`) ;
-   la spec rangée hors de l'issue : `docs/superpowers/specs/<chantier>.md` ; un plan : sa section
-   « Review Focus » et les `Ruling:` de son registre.
-   Le copier en `spec.md` dans le dossier de travail ; inconnu : le demander en une ligne.
-   Pourquoi : sans référence, « conforme » ne veut rien dire, et les agents ne lisent pas le chat.
-3. **`scripts/prepare.sh <dossier> [base] [-- chemins du lot]`**, le dossier hors du dépôt (le
-   scratchpad sous Claude, `mktemp -d` ailleurs) ; `[base]` : celle de la PR si ce n'est pas la
-   branche par défaut (`develop`) ; après `--` : les chemins du lot quand une autre session a un
-   changement dans l'arbre (il reste hors revue et intact). Retard non nul : merger la base (ou
-   rebaser, si la § Git du projet le dit) avant ③, car une preuve sur une branche en retard ne
-   prouve pas ce qui sera mergé ; conflit : arrêt, le dire. Lot vide : s'arrêter.
+1. **L'`AGENTS.md` du projet prime** (ou celui d'un dossier parent) : ses commandes (§ Commandes) ;
+   dans sa § Flow, deux lignes optionnelles : `À risque` (chemins sensibles en plus) et `En plus`
+   (une étape propre, une grille par exemple, et l'étape qui la lance).
+2. **Ce qui a commandé le diff**, copié en `spec.md` au dossier de travail (les agents ne lisent
+   pas le chat) : design, spec, plan (sa « Review Focus », les `Ruling:` de son registre), ticket,
+   ou symptôme d'un bug ; une PR : les issues qu'elle ferme
+   (`gh pr view --json closingIssuesReferences`, puis `gh issue view`), ou sa spec
+   `docs/superpowers/specs/<chantier>.md`. Inconnu : le demander en une ligne.
+3. **`scripts/prepare.sh <dossier> [base] [-- chemins du lot]`** : le dossier hors du dépôt (le
+   scratchpad sous Claude, `mktemp -d` ailleurs) ; `[base]` si la PR ne vise pas la branche par
+   défaut (`develop`) ; après `--`, les chemins du lot quand une autre session a un changement
+   dans l'arbre (il reste hors revue et intact). Retard non nul : merger la base (ou rebaser, si la
+   § Git du projet le dit) avant ③ ; conflit : arrêt, le dire. Lot vide : s'arrêter.
 
 ## ② Simplifier
 
-Dans la session, sur les lignes du lot, contre l'axe 3 de `references/relecture.md` : appliqué sur
-sa branche, sauf les odeurs de code (proposées) ; en lecture seule ou hors du lot, proposé.
-`/simplify` reste à la demande : il lance 4 agents et applique toujours ses retouches.
+Dans la session, sur les lignes du lot, contre l'axe 3 de `references/relecture.md` : appliqué,
+sauf les odeurs de code (proposées) ; en lecture seule ou hors du lot : proposé. `/simplify`
+seulement à la demande : il lance 4 agents et applique toujours ses retouches.
 
 ## ③ Prouver — toujours
 
-D'abord relancer `prepare.sh` : ② et le merge de la base ont changé le diff, et la preuve comme la
-relecture portent sur ce qui sera mergé. De là au retour du vérificateur (④), l'arbre ne bouge
-pas : relecteur et vérificateur lisent ce diff. Un relecteur neuf (④) part alors en fond, avant
-les commandes, et lit pendant qu'elles tournent ; une commande rouge : son fix attend la fin de
-④, vérificateur compris, et passe en ⑤. Pourquoi : en série, la session restait 14 à 20 min à
-vide après ses commandes (trois sessions lentes, du 2026-11-17 au 23).
+D'abord relancer `prepare.sh` (② et la base ont changé le diff) ; l'arbre ne bouge plus jusqu'au
+retour du vérificateur (④). Le relecteur neuf (④) part en fond, avant les commandes ; le fix d'une
+commande rouge attend la fin de ④, vérificateur compris, et passe en ⑤.
 
-1. **Les tests touchés d'abord**, dans `verif.diff` : assertions retirées, cas supprimés, `skip`,
-   attendus modifiés. ❌ si une régression est masquée ou si un comportement requis perd sa
+1. **Les tests touchés d'abord**, dans `verif.diff` : assertion retirée, cas supprimé, `skip`,
+   attendu modifié. ❌ si une régression est masquée ou si un comportement requis perd sa
    couverture ; une suppression redondante ou un attendu conforme à la demande n'est pas un défaut.
 2. **Les commandes**, sortie dans `verif.out` : celles de la CI du projet (lint, types, tests,
-   build ; jamais un déploiement) et celles de son `AGENTS.md` ; sinon, pour du TypeScript,
-   `conventions-ts` § Definition of Done ; aucune : le dire au bilan. Un workflow touché :
-   actionlint puis zizmor. Pourquoi : la CI confirme, elle ne trouve pas. Un lot de docs seules
-   (que des `.md`, aucun lu comme réglage : définition d'agent, output style, commande) : les
-   commandes que l'`AGENTS.md` donne pour les docs, sinon les commandes entières. Pourquoi :
-   l'`AGENTS.md` sait quels tests lisent les docs, et la suite entière coûtait ~3,5 min par
-   passage (2026-11-24).
-3. **Le vrai comportement** : UI → un navigateur piloté (`playwright-cli`), preuve par les
-   données (texte de la page, réseau, contenu envoyé), les attendus écrits rejoués, un rendu
-   changé en avant/après (`references/avant-apres.md`), le motion relu (web : `review-animations` ;
-   Expo : les tokens de motion du projet), et la liste « à tester » pour l'humain (geste →
-   attendu). CLI ou API → commande et sortie, en local ou en test. RLS ou SQL → pgTAP s'il existe,
-   sinon la requête sous le rôle permis et le rôle refusé, en local ou dans `begin … rollback`,
-   jamais sur la prod. Une écriture distante ou une donnée réelle chez un tiers exige
-   l'autorisation de cette action ; sans elle, la preuve manquante va au bilan.
-4. **Un bug** : son test montré rouge avant le fix, vert après. Pas vu rouge dans la session : la
-   base extraite dans un dossier neuf hors du dépôt (`git archive <base> | tar -x -C <neuf>`), le
-   test de la branche recopié, il échoue sur l'assertion du bug.
+   build ; jamais un déploiement) et de son `AGENTS.md` ; sinon, en TypeScript, `conventions-ts`
+   § Definition of Done ; aucune : le dire au bilan. Un workflow touché : actionlint puis zizmor.
+   Un lot de docs seules (que des `.md`, aucun lu comme réglage : définition d'agent, output
+   style, commande) : les commandes de docs de l'`AGENTS.md`, sinon les entières.
+3. **Le vrai comportement** : UI → un navigateur piloté (`playwright-cli`), preuve par les données
+   (texte de la page, réseau, contenu envoyé), attendus écrits rejoués, rendu changé en avant/après
+   (`references/avant-apres.md`), motion relu (web : `review-animations` ; Expo : ses tokens de
+   motion), liste « à tester » pour l'humain (geste → attendu). CLI ou API → commande et sortie,
+   en local ou en test. RLS ou SQL → pgTAP s'il existe, sinon la requête sous le rôle permis et le
+   rôle refusé, en local ou dans `begin … rollback`, jamais sur la prod. Une écriture distante ou
+   une donnée réelle chez un tiers exige l'autorisation de cette action ; sans elle, la preuve
+   manquante va au bilan.
+4. **Un bug** : son test rouge avant le fix, vert après. Pas vu rouge dans la session : la base
+   extraite dans un dossier neuf hors du dépôt (`git archive <base> | tar -x -C <neuf>`), le test
+   de la branche recopié, il échoue sur l'assertion du bug.
 
 ## ④ Relire
 
@@ -98,65 +87,50 @@ Les règles, pour la session comme pour le relecteur : `AGENTS.md`, conventions,
 l'interface touchée, règles globales.
 
 **Dans la session** (retouche, sans logique nouvelle) : `references/relecture.md`, sur les lignes
-du lot, avec les règles ; seuls les constats que la session confirme en relisant le code passent
-en ⑤.
+du lot ; seul un constat que la session confirme en relisant le code passe en ⑤.
 
-**Relecteur neuf** (hors retouche, chemin à risque) : l'agent `adversarial-reviewer`
-s'il existe, sinon un sous-agent neuf au modèle `opus`, à qui le brief interdit d'écrire. Il
-reçoit le chemin absolu de `references/relecture.md`, du dossier de travail (`verif.diff`,
-`commits.txt`, `spec.md`, et `verif.out`, que ③ remplit pendant sa relecture) et des règles. Une
-étape `En plus` qui relit (une grille d'audit) lui est donnée aussi : elle remplace l'axe 1 de
-`references/relecture.md` (les règles), le reste du brief tient ; jamais un agent de plus, et la
-contre-vérification reste la même. Pourquoi : une grille ne couvre que ses familles, et sans
-l'axe 2 un diff hors d'elles passait sans relecture de la spec ni des bugs (2026-11-25). Pas le
-`/code-review` intégré : il ne reçoit ni spec ni messages de commit (le texte qui le suit est une
-cible), ne vérifie ses constats qu'en `max` et vise un nombre minimum de constats ; à la demande,
-un second avis sur les bugs, en plus du relecteur.
+**Relecteur neuf** (hors retouche, chemin à risque) : l'agent `adversarial-reviewer` s'il existe,
+sinon un sous-agent neuf au modèle `opus`, à qui le brief interdit d'écrire. Il reçoit les chemins
+absolus de `references/relecture.md`, du dossier de travail (`verif.diff`, `commits.txt`,
+`spec.md`, et `verif.out`, rempli pendant sa relecture) et des règles, plus la grille d'une étape
+`En plus` qui relit (son effet : `references/relecture.md`, en tête) ; jamais un agent de plus,
+et la contre-vérification reste la même. Pas le `/code-review` intégré (ni spec ni messages de
+commit, constats vérifiés seulement en `max`) ; à la demande, un second avis sur les bugs.
 
-**Puis, au retour du relecteur**, les commandes qu'il dit absentes de `verif.out` se recoupent :
-une qui manque tourne avant ⑤. Et la preuve de ses constats bloquants et importants (pas les
-`Nit:` : une erreur y coûte peu) :
-- **Par une commande**, quand une commande le reproduit : un lint, le CLI sur l'entrée du
-  scénario, un script d'essai ; jamais une recherche de présence ou d'absence (`grep`), qui ne
-  voit pas un fait dit en d'autres mots ou rangé ailleurs. Elle vise l'arbre relu par son chemin
-  (un outil du `PATH` peut lancer un autre checkout), son essai s'écrit dans le dossier de
-  travail ; sa sortie le montre, il est `CONFIRMED`, et elle va dans `bilan.md`. Une commande qui
-  ne le reproduit pas ne le réfute pas : il part au vérificateur.
-- **Par un vérificateur**, les autres, en un lot (aucun : pas de vérificateur ; jamais la session à
-  sa place) : un second sous-agent neuf au modèle `opus`, avec le chemin absolu de
-  `references/contre-verification.md`, le dossier de travail et l'arbre relu.
+**Au retour du relecteur**, une commande qu'il dit absente de `verif.out` tourne avant ⑤. Puis
+chaque constat bloquant ou important (pas les `Nit:`) se prouve :
+- **par une commande** qui le reproduit (un lint, le CLI sur l'entrée du scénario, un script
+  d'essai) ; jamais une recherche de présence ou d'absence (`grep`), aveugle à un fait dit
+  autrement ou rangé ailleurs. Elle vise l'arbre relu par son chemin (un outil du `PATH` peut
+  lancer un autre checkout), son essai dans le dossier de travail ; sa sortie le montre : il est
+  `CONFIRMED`, et elle va dans `bilan.md`. Non reproduit n'est pas réfuté : au vérificateur ;
+- **par un vérificateur**, les autres, en un lot (aucun : pas de vérificateur ; jamais la session à
+  sa place : seul un vérificateur séparé a un gain de précision mesuré) : un second sous-agent
+  neuf au modèle `opus`, avec le chemin absolu de `references/contre-verification.md`, le dossier
+  de travail et l'arbre relu.
 
-Après les deux voies, `git status` : un fichier neuf laissé dans le dépôt passe dans le dossier de
-travail (`mv`) avant ⑤, car ③ relancée ne voit que le lot, et le bilan le nomme ; un fichier suivi
-modifié : arrêt, le dire.
+Puis `git status` : un fichier neuf laissé dans le dépôt passe au dossier de travail (`mv`) avant
+⑤, nommé au bilan ; un fichier suivi modifié : arrêt, le dire.
 
-Pourquoi : un relecteur trouve toujours quelque chose, et un faux constat corrigé coûte un fix et
-une régression possible ; un vérificateur séparé est le seul moyen dont un gain de précision est
-mesuré ; une commande qui reproduit le constat le prouve, plus vite (7 min de vérificateur pour un
-constat qu'une commande montrait, 2026-11-22).
-
-Lancés en fond : les commandes de ③ et le reste avancent (la PR, ③ vert, si les règles l'ouvrent ;
-la CI), et un bilan de clôture suit leur retour. Un seul tour ; une seconde relecture, sur
-demande. Pas de sous-agent possible : relire soi-même avec les deux briefs, et le bilan le dit.
+Pendant ces agents, le reste avance (la PR, ③ vert, si les règles l'ouvrent ; la CI) ; un bilan de
+clôture suit leur retour. Un seul tour ; une seconde relecture, sur demande. Sans sous-agent
+possible : relire soi-même avec les deux briefs, et le bilan le dit.
 
 ## ⑤ Corriger
 
 Sur sa branche, hors lecture seule, en un lot : les commandes rouges de ③, et les constats
 bloquants et importants `CONFIRMED` sur des lignes que la branche a écrites ; un bug : son test
-rouge d'abord. Le reste (ligne plus ancienne, autre fichier, comportement que personne n'a
-demandé, `PLAUSIBLE`, `Nit:`, « à trancher ») va au bilan, numéroté ; l'utilisateur choisit. Puis
-③ relancée, et le diff du fix (`git diff` depuis l'état relu) relu une fois dans la session contre
-`references/relecture.md` ; un fix qui touche un chemin à risque est relu, lui, par un relecteur
-neuf, ses constats prouvés comme en ④, sauf un fix de docs seules (③ point 2) : dans la session.
-Pourquoi : un fix non relu est du code que personne n'a vérifié, et depuis que ④ part avant les
-commandes, le fix d'une commande rouge vient toujours après lui ; pour une phrase de règle, un
-troisième tour d'agents coûtait plus que le fix (2026-11-25).
+rouge d'abord. Le reste (ligne plus ancienne, autre fichier, comportement non demandé,
+`PLAUSIBLE`, `Nit:`, « à trancher ») : au bilan, numéroté ; l'utilisateur choisit. Puis ③
+relancée, et le diff du fix (`git diff` depuis l'état relu) relu une fois dans la session contre
+`references/relecture.md` ; un fix sur un chemin à risque, par un relecteur neuf, ses constats
+prouvés comme en ④, sauf un fix de docs seules (③ point 2) : dans la session.
 
 ## Le bilan
 
-Le chat reçoit le bilan court, sans raconter la méthode (relecteur, vérificateur, tests vus
-rouges), sauf une étape qui a échoué ; un agent pas encore revenu y est en ⏳. Des règles de
-l'utilisateur qui fixent leur propre forme de bilan priment :
+Le chat reçoit le bilan court, sans raconter la méthode, sauf une étape qui a échoué ; un agent
+pas encore revenu y est en ⏳. Des règles de l'utilisateur qui fixent leur propre forme de bilan
+priment :
 
 <!-- bilan -->
 1. **Une phrase d'abord** : l'état, et ce qui change pour l'utilisateur.
@@ -176,25 +150,20 @@ l'utilisateur qui fixent leur propre forme de bilan priment :
 
 Le détail va dans `bilan.md`, au dossier de travail, sous les mêmes blocs :
 
-1. **La phrase** : ✅ prêt · ❗ prêt avec réserves · ❌ pas prêt, et ce qui change pour
-   l'utilisateur.
-2. **Fait** : chaque exigence prouvée et sa preuve (la commande ou la capture) ; ce qui a été
-   simplifié.
-3. **Reste** : les constats retenus, ❌ puis ❗, `fichier:ligne` et impact, puis `PLAUSIBLE`,
-   « à trancher » (options et recommandation) et `Nit:` ; un constat confirmé qu'un test, un lint ou une
-   règle aurait évité : le garde-fou proposé, jamais écrit d'office ; à tester (geste → attendu)
-   et le chemin de la planche avant/après.
-4. **À savoir** : chaque exigence non prouvée, et pourquoi ; le rayon d'impact, qui fait relire
-   la PR « lentement » (migration, données, prod, interface publique, client déjà installé,
-   garde-fou : mot exact, permission, hook, suppression ; geste irréversible) ; ce qui a été sauté (et
-   pourquoi), ou arbitré à la place de l'utilisateur (et le coût si c'est faux) ; les écartés,
-   une ligne chacun (réfutés, préexistants, hors du lot, déclinés).
+1. **La phrase** : ✅ prêt · ❗ prêt avec réserves · ❌ pas prêt.
+2. **Fait** : chaque exigence prouvée, sa preuve (commande ou capture) ; ce qui a été simplifié.
+3. **Reste** : les constats retenus (❌ puis ❗, `fichier:ligne`, impact), puis `PLAUSIBLE`,
+   « à trancher » (options, recommandation), `Nit:` ; un constat qu'un test, un lint ou une règle
+   aurait évité : le garde-fou proposé, jamais écrit d'office ; à tester (geste → attendu) ; la
+   planche avant/après.
+4. **À savoir** : chaque exigence non prouvée, et pourquoi ; le rayon d'impact (migration,
+   données, prod, interface publique, client déjà installé, garde-fou : mot exact, permission,
+   hook, suppression ; geste irréversible), qui fait relire la PR « lentement » ; ce qui a été
+   sauté ou arbitré à la place de l'utilisateur, et le coût si c'est faux ; les écartés, une ligne
+   chacun (réfutés, préexistants, hors du lot, déclinés).
 
 Sur sa propre PR dont le modèle a une section « Vérif » : le bilan court, puis `bilan.md` replié
 dessous (`<details>`), dans cette section seule (`gh pr view <n> --json body`, puis
 `gh pr edit <n> --body-file`).
-
-Pourquoi : le lecteur décroche devant un bloc ; ce qui demande une action, une décision ou porte
-un risque reste sous ses yeux.
 
 Le skill s'arrête là.
