@@ -16,10 +16,13 @@ Une issue dit ce qu'une PR doit livrer et quand c'est fini. Moins il y en a, mie
   sur la branche par défaut. Une PR qui ne tient pas tout le « Fini quand » : le reste part dans
   une issue neuve avant le merge. Un lot (le même geste sur plusieurs unités) : son issue liste
   les unités, sa PR les livre toutes ; un audit qui sort plusieurs gestes en fait autant de lots.
-- **Une PR se relit d'une passe** : au-delà d'environ 400 lignes prévues (hors tests, fichiers
-  générés, déplacements, renommages, fichiers supprimés), le design la coupe en plusieurs issues,
-  une PR chacune, à la suite (3 ou plus : § Epic) ; un lot aussi, par unités. Sauf un lot de docs
-  seules (un tri, des renvois) : une PR, une doc par commit, quelle que soit sa taille.
+- **Le moins de PR possible** : chacune coûte un flow entier (vérif, relecture, merge). Le design
+  ne coupe que pour un autre dépôt, une publication à part (chaque version d'un paquet coûte une
+  montée par dépôt), un chemin à risque à isoler du reste, ou une PR qui ne se relit plus d'une
+  passe : au-delà d'environ 400 lignes prévues (hors tests, fichiers générés, déplacements,
+  renommages, fichiers supprimés). Une coupe : plusieurs issues, une PR chacune, à la suite (3 ou
+  plus : § Epic) ; un lot, par unités. Sauf un lot de docs seules (un tri, des renvois) : une PR,
+  une doc par commit, quelle que soit sa taille.
 - Titre en clair. Corps, dans cet ordre :
   - le besoin et ce qu'il faut, avec l'approche retenue et pourquoi si un choix l'a tranchée ;
   - **« Fini quand »** : des critères qu'on vérifie (une commande, un écran, un test), pas une
