@@ -1,12 +1,21 @@
 ---
 name: verif-feature
-description: Use when a feature, fix or branch is finished, before a PR or merge, or when asked to check the work — « vérifie la feature », « code review », « audit avant merge », « audit complet », « tout est bon et clean », « pas de superflu », « passe qualité », « montre l'avant/après ». Proves it by project commands and a cross-checked fresh review. Not for a spec or plan before code, nor a project audit.
+description: Use when a feature, fix, branch or part of a chantier is finished, before a push, PR or merge, or when asked to check the work — « vérifie la feature », « code review », « audit avant merge », « audit complet », « tout est bon et clean », « pas de superflu », « passe qualité », « montre l'avant/après ». Not for a spec or plan before code, nor a project audit.
 ---
 
 # verif-feature — vérifier avant PR ou merge
 
 Prouver au lieu d'affirmer, à la taille du travail :
 `① préparer → ② simplifier → ③ prouver ∥ ④ relire → ⑤ corriger → bilan` (∥ : en même temps).
+
+Une passe par **partie** d'un chantier (skill `issues`), juste après l'avoir codée et commitée ;
+son diff : ce qui n'est pas encore poussé (① point 3). En début de partie, avant d'en coder une
+ligne : `git fetch`, puis le retard sur la base de la PR
+(`git rev-list --count HEAD..origin/<base>`) ; non nul, la merger, et pousser ce merge seul si la
+branche l'est déjà (mergée au milieu, le code des autres entrerait dans le diff relu) ; conflit :
+arrêt, le dire (sa résolution, poussée seule, échapperait à la relecture). Une partie ne se
+pousse qu'une fois relue (⑤ fait), sauvegarde comprise, sauf la dernière, ou la seule : sa PR
+peut partir pendant ④. Puis § La fin du chantier.
 
 | Taille | ④ relire | ④ contre-vérifier |
 | --- | --- | --- |
@@ -44,10 +53,13 @@ arrêt, le dire.
    (`gh pr view --json closingIssuesReferences`, puis `gh issue view`), ou sa spec
    `docs/superpowers/specs/<chantier>.md`. Inconnu : le demander en une ligne.
 3. **`scripts/prepare.sh <dossier> [base] [-- chemins du lot]`** : le dossier hors du dépôt (le
-   scratchpad sous Claude, `mktemp -d` ailleurs) ; `[base]` si la PR ne vise pas la branche par
-   défaut (`develop`) ; après `--`, les chemins du lot quand une autre session a un changement
-   dans l'arbre (il reste hors revue et intact). Retard non nul : merger la base (ou rebaser, si la
-   § Git du projet le dit) avant ③ ; conflit : arrêt, le dire. Lot vide : s'arrêter.
+   scratchpad sous Claude, `mktemp -d` ailleurs) ; `[base]` : `origin/<branche>` quand la
+   partie précédente de ce chantier a été relue puis poussée ; sinon (première partie, lecture
+   seule, branche d'un autre), la base de la PR si elle ne vise pas la branche par défaut
+   (`develop`) ; après `--`, les chemins du lot quand une autre session
+   a un changement dans l'arbre (il reste hors revue et intact). Retard non nul : merger la base
+   (ou rebaser, si la § Git du projet le dit) avant ③ ; conflit : arrêt, le dire. Lot vide :
+   s'arrêter.
 
 ## ② Simplifier
 
@@ -116,8 +128,8 @@ chaque constat bloquant ou important (pas les `Nit:`) se prouve :
 Puis `git status` : un fichier neuf laissé dans le dépôt passe au dossier de travail (`mv`) avant
 ⑤, nommé au bilan ; un fichier suivi modifié : arrêt, le dire.
 
-Pendant ces agents, le reste avance (la PR, ③ vert, si les règles l'ouvrent ; la CI) ; un bilan de
-clôture suit leur retour. Un seul tour ; une seconde relecture, sur demande. Sans sous-agent
+Pendant ces agents, le reste avance (la dernière partie : la PR, ③ vert, si les règles l'ouvrent ;
+la CI) ; avant une autre partie, l'arbre attend leur retour. Un bilan de clôture suit. Un seul tour ; une seconde relecture, sur demande. Sans sous-agent
 possible : relire soi-même avec les deux briefs, et le bilan le dit.
 
 ## ⑤ Corriger
@@ -128,6 +140,12 @@ rouge d'abord. Le reste (ligne plus ancienne, autre fichier, comportement non de
 `PLAUSIBLE`, `Nit:`, « à trancher ») : au bilan, numéroté ; l'utilisateur choisit. Puis ③
 relancée, et le diff du fix (`git diff` depuis l'état relu) relu une fois dans la session contre
 `references/relecture.md`, chemin à risque compris : jamais un troisième tour d'agents.
+
+## La fin du chantier
+
+Après la dernière partie : les commandes de ③ point 2 sur la pointe, sauf si leur dernier vert
+la vaut déjà (une partie commitée avant ③ laisse un arbre propre, et la pointe n'a pas bougé
+depuis) ; puis la PR et sa CI. Des commandes, pas une relecture de tout le diff.
 
 ## Le bilan
 

@@ -39,7 +39,7 @@ text{fill:#E6EDF3} .m{fill:#9198A1}
 <text x="325" y="106" class="m" style="font-size:13px">l&#x27;issue se</text>
 <text x="325" y="125" class="m" style="font-size:13px">ferme seule</text>
 <path d="M288 92H300" class="ln"/><path d="M308 92l-9-5v10z" class="hd"/>
-<text x="500" y="22" class="b" style="font-size:16px">Une epic, ses parties</text>
+<text x="500" y="22" class="b" style="font-size:16px">Une epic, ses PR</text>
 <rect x="600" y="40" width="260" height="58" rx="10" class="ps"/>
 <text x="616" y="65" class="b" style="font-size:15px">[EPIC] Paiement en ligne</text>
 <text x="616" y="86" class="m" style="font-size:13px">label epic, sans PR</text>

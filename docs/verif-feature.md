@@ -2,8 +2,8 @@
 
 # ✅ verif-feature
 
-Prouver au lieu d'affirmer : Claude vérifie une branche finie et rend un bilan qui dit si elle est
-prête.
+Prouver au lieu d'affirmer : Claude vérifie une partie ou une branche finie et rend un bilan qui
+dit si elle est prête.
 
 <img src="img/verif-etapes.svg" alt="Les étapes : préparer, simplifier, prouver (toujours) et relire en même temps, corriger, bilan" width="100%">
 
