@@ -155,18 +155,13 @@ priment :
 
 <!-- bilan -->
 1. **Une phrase d'abord** : l'état, et ce qui change pour l'utilisateur.
-2. **Fait** : une ligne par PR, issue ou livrable, depuis le dernier bilan (tout le chantier
-   quand l'utilisateur demande où on en est). Un échec y figure en ❌, l'erreur exacte dans un
-   bloc de code.
-3. **Reste** : 👤 ce que l'utilisateur décide ou fait, avec la réponse conseillée ; 👉 la
-   prochaine étape de l'agent ; ⏳ ce qui tourne encore. Un point qui bloque une PR la nomme.
-4. **À savoir** : ❗ un risque, une chose non prouvée, un choix fait à la place de l'utilisateur.
-5. **Une liste numérotée d'un bout à l'autre**, sans arbre ; un bloc vide saute. Une PR que rien
-   ne bloque (ni fix, ni décision, ni relecture en cours, ni CI rouge) : la dernière ligne le dit
-   et la nomme.
-6. **Le détail** (preuves, constats de relecture) vit dans la PR ou dans un fichier dont le bilan
-   donne le chemin, sinon il attend la demande ; le bilan n'en garde que ce qui demande une action
-   ou porte un risque, sans renvoyer à ses numéros.
+2. **Fait** : une ligne par livrable (PR, issue, fichier) ; un échec en ❌, l'erreur exacte dans
+   un bloc de code.
+3. **Reste** : 👤 ce que l'utilisateur décide, avec la réponse conseillée ; 👉 la suite ; ⏳ ce qui
+   tourne. Une PR que rien ne bloque : la dernière ligne la nomme.
+4. **À savoir** : ❗ un risque, une chose non prouvée, un choix fait à sa place ; vide, il saute.
+5. **Une liste numérotée d'un bout à l'autre** ; le détail (preuves, constats) vit dans la PR ou
+   un fichier nommé, sinon il attend la demande.
 <!-- /bilan -->
 
 Le détail va dans `bilan.md`, au dossier de travail, sous les mêmes blocs :
