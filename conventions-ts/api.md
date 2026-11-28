@@ -7,8 +7,8 @@ l'infra : `references/api-socle.md`.
 
 **Quand** : dès qu'un client qui n'est pas un serveur lit les données, donc pour toute app
 mobile ; un site Next seul client de sa base la lit sans API (`web.md`). Elle tourne sur le VPS,
-pas sur Workers (skill `infra` : `docs/vps/stack.md` § Une nouvelle app : Workers ou VPS et
-§ Clients publics).
+pas sur Workers (skill `infra` : `docs/heberger.md` § Une nouvelle app : Workers ou VPS et
+`docs/vps/choix.md` § Clients publics).
 
 ## Ce que contient une bonne API
 
